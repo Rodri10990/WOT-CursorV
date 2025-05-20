@@ -87,11 +87,11 @@ export default function Settings() {
             <CardContent className="p-4">
               <div className="flex items-center space-x-4 mb-4">
                 <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-lg text-white font-medium">
-                  JS
+                  {avatarInitials}
                 </div>
                 <div>
-                  <h3 className="font-medium">Jamie Smith</h3>
-                  <p className="text-xs text-neutral-400">Member since May 2024</p>
+                  <h3 className="font-medium">{name}</h3>
+                  <p className="text-xs text-neutral-400">Member since {memberSince}</p>
                 </div>
               </div>
               
@@ -105,25 +105,52 @@ export default function Settings() {
           <div className="space-y-4">
             <div>
               <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
-              <Input id="name" defaultValue="Jamie Smith" className="mt-1" />
+              <Input 
+                id="name" 
+                value={formData.name} 
+                onChange={handleChange}
+                className="mt-1" 
+              />
             </div>
             
             <div>
               <Label htmlFor="email" className="text-sm font-medium">Email</Label>
-              <Input id="email" type="email" defaultValue="jamie.smith@example.com" className="mt-1" />
+              <Input 
+                id="email" 
+                type="email" 
+                value={formData.email} 
+                onChange={handleChange}
+                className="mt-1" 
+              />
             </div>
             
             <div>
               <Label htmlFor="username" className="text-sm font-medium">Username</Label>
-              <Input id="username" defaultValue="jamiesmith" className="mt-1" />
+              <Input 
+                id="username" 
+                value={formData.username} 
+                onChange={handleChange}
+                className="mt-1" 
+              />
             </div>
             
             <div>
               <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
-              <Input id="phone" type="tel" defaultValue="(555) 123-4567" className="mt-1" />
+              <Input 
+                id="phone" 
+                type="tel" 
+                value={formData.phone} 
+                onChange={handleChange}
+                className="mt-1" 
+              />
             </div>
             
-            <Button className="w-full bg-primary hover:bg-primary/90 mt-2">Save Changes</Button>
+            <Button 
+              className="w-full bg-primary hover:bg-primary/90 mt-2"
+              onClick={handleSave}
+            >
+              Save Changes
+            </Button>
           </div>
         </div>
       )}

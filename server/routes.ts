@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/openai";
+import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/cursor-ai";
 import { MessageEntry } from "@shared/schema";
 
 const messageRequestSchema = z.object({

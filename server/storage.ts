@@ -1,4 +1,6 @@
-import { users, type User, type InsertUser, AiConversation, InsertAiConversation, MessageEntry } from "@shared/schema";
+import { users, type User, type InsertUser, AiConversation, InsertAiConversation, MessageEntry, aiConversations } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc } from "drizzle-orm";
 
 // modify the interface with any CRUD methods
 // you might need
@@ -15,90 +17,81 @@ export interface IStorage {
   updateConversation(id: number, messages: MessageEntry[]): Promise<AiConversation>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  private conversations: Map<number, AiConversation>;
-  currentUserId: number;
-  currentConversationId: number;
-
-  constructor() {
-    this.users = new Map();
-    this.conversations = new Map();
-    this.currentUserId = 1;
-    this.currentConversationId = 1;
-    
-    // Add a demo user
-    this.createUser({
-      username: "demo",
-      password: "password",
-      name: "Jamie Smith",
-      plan: "Premium",
-    });
-  }
-
+export class DatabaseStorage implements IStorage {
   async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user;
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentUserId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
     return user;
   }
   
   // AI Conversation methods
   async getConversation(id: number): Promise<AiConversation | undefined> {
-    return this.conversations.get(id);
+    const [conversation] = await db
+      .select()
+      .from(aiConversations)
+      .where(eq(aiConversations.id, id));
+    
+    return conversation;
   }
   
   async getLatestConversation(userId: number): Promise<AiConversation | undefined> {
-    // Find the most recent conversation for the user
-    const userConversations = Array.from(this.conversations.values())
-      .filter(conv => conv.userId === userId)
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    const [conversation] = await db
+      .select()
+      .from(aiConversations)
+      .where(eq(aiConversations.userId, userId))
+      .orderBy(desc(aiConversations.updatedAt))
+      .limit(1);
     
-    return userConversations.length > 0 ? userConversations[0] : undefined;
+    return conversation;
   }
   
   async createConversation(userId: number, messages: MessageEntry[]): Promise<AiConversation> {
-    const id = this.currentConversationId++;
-    const now = new Date().toISOString();
+    const now = new Date();
     
-    const conversation: AiConversation = {
-      id,
-      userId,
-      messages,
-      createdAt: now,
-      updatedAt: now,
-    };
+    const [conversation] = await db
+      .insert(aiConversations)
+      .values({
+        userId,
+        messages,
+        createdAt: now,
+        updatedAt: now,
+      })
+      .returning();
     
-    this.conversations.set(id, conversation);
     return conversation;
   }
   
   async updateConversation(id: number, messages: MessageEntry[]): Promise<AiConversation> {
-    const conversation = this.conversations.get(id);
+    const [updatedConversation] = await db
+      .update(aiConversations)
+      .set({
+        messages,
+        updatedAt: new Date(),
+      })
+      .where(eq(aiConversations.id, id))
+      .returning();
     
-    if (!conversation) {
+    if (!updatedConversation) {
       throw new Error(`Conversation with ID ${id} not found`);
     }
     
-    const updatedConversation: AiConversation = {
-      ...conversation,
-      messages,
-      updatedAt: new Date().toISOString(),
-    };
-    
-    this.conversations.set(id, updatedConversation);
     return updatedConversation;
   }
 }
 
-export const storage = new MemStorage();
+// Comment out the MemStorage and use DatabaseStorage instead
+// export class MemStorage implements IStorage { ... }
+
+export const storage = new DatabaseStorage();

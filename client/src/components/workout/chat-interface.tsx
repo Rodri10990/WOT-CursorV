@@ -96,6 +96,18 @@ export default function ChatInterface({ messages, isLoading, isTyping, specialCo
         return null;
       })}
 
+      {/* Display special content (workout plans, exercise forms) */}
+      {specialContent && (
+        <div className="flex mb-4">
+          <div className="h-8 w-8 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-2 mt-2">
+            <span className="material-icons text-white text-sm">smart_toy</span>
+          </div>
+          <div className="max-w-[85%] w-full">
+            {specialContent}
+          </div>
+        </div>
+      )}
+      
       {/* Typing indicator */}
       {isTyping && (
         <div className="flex mb-4">

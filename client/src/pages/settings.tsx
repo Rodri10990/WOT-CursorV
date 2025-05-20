@@ -4,9 +4,48 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useState } from "react";
+import { useUserStore } from "@/lib/userStore";
+import { useToast } from "@/hooks/use-toast";
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
+  const { name, username, email, phone, avatarInitials, memberSince, setUser } = useUserStore();
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState({
+    name,
+    username,
+    email,
+    phone
+  });
+  
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { id, value } = e.target;
+    setFormData({
+      ...formData,
+      [id]: value
+    });
+  };
+  
+  const handleSave = () => {
+    // Update initials based on new name
+    const nameParts = formData.name.split(' ');
+    const newInitials = nameParts.length > 1 
+      ? `${nameParts[0][0]}${nameParts[1][0]}` 
+      : formData.name.substring(0, 2);
+    
+    // Update user store
+    setUser({ 
+      ...formData,
+      avatarInitials: newInitials.toUpperCase()
+    });
+    
+    // Show success toast
+    toast({
+      title: "Changes saved",
+      description: "Your profile has been updated"
+    });
+  };
 
   return (
     <div className="p-4 pb-6">

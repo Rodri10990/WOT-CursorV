@@ -1,12 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { useUserStore } from "@/lib/userStore";
 
 export default function Dashboard() {
+  const { name, weight, weightUnit, bodyFat } = useUserStore();
+  
+  // Extract first name for welcome message
+  const firstName = name.split(' ')[0];
+  
   return (
     <div className="p-4 pb-6">
       <div className="pt-2 pb-4">
-        <h1 className="text-2xl font-bold">Welcome, Jamie</h1>
+        <h1 className="text-2xl font-bold">Welcome, {firstName}</h1>
       </div>
       
       {/* Overview Cards */}
@@ -116,10 +122,10 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div className="text-xl font-bold">175 lbs</div>
+              <div className="text-xl font-bold">{weight} {weightUnit}</div>
               <div className="flex items-center text-green-500">
                 <span className="material-icons text-sm">arrow_downward</span>
-                <span className="text-xs">2.5 lbs</span>
+                <span className="text-xs">2.5 {weightUnit}</span>
               </div>
             </div>
             <p className="text-xs text-neutral-400 mt-1">Last 30 days</p>
@@ -132,7 +138,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="p-3">
             <div className="flex items-center justify-between">
-              <div className="text-xl font-bold">18.5%</div>
+              <div className="text-xl font-bold">{bodyFat}%</div>
               <div className="flex items-center text-green-500">
                 <span className="material-icons text-sm">arrow_downward</span>
                 <span className="text-xs">1.2%</span>

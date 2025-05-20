@@ -10,10 +10,7 @@ import Workouts from "@/pages/workouts";
 import Progress from "@/pages/progress";
 import Nutrition from "@/pages/nutrition";
 import Settings from "@/pages/settings";
-import Header from "@/components/layout/header";
-import Sidebar from "@/components/layout/sidebar";
-import MobileNav from "@/components/layout/mobile-nav";
-import { useState } from "react";
+import TabBar from "@/components/layout/tab-bar";
 
 function Router() {
   return (
@@ -32,25 +29,15 @@ function Router() {
 }
 
 function App() {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
-  const toggleMobileMenu = () => {
-    setMobileMenuOpen(!mobileMenuOpen);
-  };
-
   return (
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <Toaster />
-        <div className="flex flex-col h-screen">
-          <Header onMenuClick={toggleMobileMenu} />
-          <div className="flex flex-1 overflow-hidden">
-            <Sidebar isOpen={mobileMenuOpen} />
-            <main className="flex-1 flex flex-col bg-neutral-100 overflow-hidden">
-              <Router />
-            </main>
-          </div>
-          <MobileNav />
+        <div className="flex flex-col h-screen bg-neutral-100">
+          <main className="flex-1 flex flex-col overflow-y-auto pb-16">
+            <Router />
+          </main>
+          <TabBar />
         </div>
       </TooltipProvider>
     </QueryClientProvider>

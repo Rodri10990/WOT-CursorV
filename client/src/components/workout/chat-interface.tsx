@@ -42,15 +42,15 @@ export default function ChatInterface({ messages, isLoading, isTyping }: ChatInt
   }
 
   return (
-    <div className="flex-1 overflow-y-auto px-4 py-6" id="chat-messages">
+    <div className="flex-1 overflow-y-auto px-3 py-4" id="chat-messages">
       {/* Show welcome message if no messages */}
       {messages.length === 0 && (
-        <div className="flex mb-6">
-          <div className="h-10 w-10 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-3">
+        <div className="flex mb-4">
+          <div className="h-8 w-8 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-2">
             <span className="material-icons text-white text-sm">smart_toy</span>
           </div>
-          <div className="max-w-[80%] bg-white p-3 chat-bubble-ai shadow-sm">
-            <p className="text-neutral-400">{welcomeMessage.content}</p>
+          <div className="max-w-[85%] bg-white dark:bg-neutral-800 p-3 rounded-2xl rounded-tl-none shadow-sm">
+            <p className="text-sm text-neutral-600 dark:text-neutral-300">{welcomeMessage.content}</p>
           </div>
         </div>
       )}
@@ -59,21 +59,21 @@ export default function ChatInterface({ messages, isLoading, isTyping }: ChatInt
       {messages.map((message, index) => {
         if (message.role === "user") {
           return (
-            <div className="flex justify-end mb-6" key={index}>
-              <div className="max-w-[80%] bg-primary-light text-white p-3 chat-bubble-user">
-                <p>{message.content}</p>
+            <div className="flex justify-end mb-4" key={index}>
+              <div className="max-w-[85%] bg-primary text-white p-3 rounded-2xl rounded-br-none">
+                <p className="text-sm">{message.content}</p>
               </div>
             </div>
           );
         } else if (message.role === "assistant") {
           return (
-            <div className="flex mb-6" key={index}>
-              <div className="h-10 w-10 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-3">
+            <div className="flex mb-4" key={index}>
+              <div className="h-8 w-8 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-2">
                 <span className="material-icons text-white text-sm">smart_toy</span>
               </div>
-              <div className="max-w-[80%]">
-                <div className="bg-white p-3 chat-bubble-ai shadow-sm mb-2">
-                  <p className="text-neutral-400">{message.content}</p>
+              <div className="max-w-[85%]">
+                <div className="bg-white dark:bg-neutral-800 p-3 rounded-2xl rounded-tl-none shadow-sm mb-2">
+                  <p className="text-sm text-neutral-600 dark:text-neutral-300">{message.content}</p>
                 </div>
 
                 {/* Conditionally render special cards based on message content */}
@@ -97,15 +97,15 @@ export default function ChatInterface({ messages, isLoading, isTyping }: ChatInt
 
       {/* Typing indicator */}
       {isTyping && (
-        <div className="flex mb-6">
-          <div className="h-10 w-10 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-3">
+        <div className="flex mb-4">
+          <div className="h-8 w-8 rounded-full bg-accent flex-shrink-0 flex items-center justify-center mr-2">
             <span className="material-icons text-white text-sm">smart_toy</span>
           </div>
-          <div className="max-w-[80%] bg-white p-3 chat-bubble-ai shadow-sm">
+          <div className="max-w-[85%] bg-white dark:bg-neutral-800 p-3 rounded-2xl rounded-tl-none shadow-sm">
             <div className="flex space-x-1">
-              <div className="h-2 w-2 bg-neutral-300 rounded-full animate-bounce"></div>
-              <div className="h-2 w-2 bg-neutral-300 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
-              <div className="h-2 w-2 bg-neutral-300 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+              <div className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce"></div>
+              <div className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+              <div className="h-2 w-2 bg-neutral-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
             </div>
           </div>
         </div>

@@ -7,6 +7,11 @@ import { MessageEntry } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
+interface ConversationResponse {
+  id: number;
+  messages: MessageEntry[];
+}
+
 export default function AITrainer() {
   const [messages, setMessages] = useState<MessageEntry[]>([]);
   const [conversationId, setConversationId] = useState<number | null>(null);
@@ -14,15 +19,8 @@ export default function AITrainer() {
   const { toast } = useToast();
 
   // Fetch existing conversation or start a new one
-  const { data: conversationData, isLoading } = useQuery({
+  const { data: conversationData, isLoading } = useQuery<ConversationResponse>({
     queryKey: ["/api/trainer/conversation"],
-    onError: () => {
-      toast({
-        title: "Failed to load conversation",
-        description: "Please try refreshing the page",
-        variant: "destructive",
-      });
-    },
   });
 
   // Send message mutation
@@ -65,6 +63,19 @@ export default function AITrainer() {
       setMessages(conversationData.messages || []);
     }
   }, [conversationData]);
+  
+  // Handle errors
+  useEffect(() => {
+    const handleError = () => {
+      toast({
+        title: "Connection error",
+        description: "Please check your internet connection",
+        variant: "destructive",
+      });
+    };
+    window.addEventListener('offline', handleError);
+    return () => window.removeEventListener('offline', handleError);
+  }, [toast]);
 
   const handleSendMessage = (message: string) => {
     if (!message.trim()) return;
@@ -83,20 +94,14 @@ export default function AITrainer() {
   return (
     <div className="flex flex-col h-full">
       {/* Trainer Info Section */}
-      <div className="bg-white p-4 shadow-sm">
+      <div className="bg-white dark:bg-neutral-900 p-3 border-b border-neutral-200 dark:border-neutral-800">
         <div className="flex items-center">
-          <div className="mr-4 h-12 w-12 bg-accent rounded-full flex items-center justify-center">
-            <span className="material-icons text-white">smart_toy</span>
+          <div className="mr-3 h-10 w-10 bg-accent rounded-full flex items-center justify-center">
+            <span className="material-icons text-white text-lg">smart_toy</span>
           </div>
           <div>
-            <h2 className="font-heading font-semibold text-lg">AI Personal Trainer</h2>
-            <p className="text-neutral-300 text-sm">Your personalized workout assistant</p>
-          </div>
-          <div className="ml-auto">
-            <button className="text-primary flex items-center text-sm">
-              <span className="material-icons text-sm mr-1">info</span>
-              About
-            </button>
+            <h2 className="font-semibold text-base">AI Personal Trainer</h2>
+            <p className="text-neutral-400 text-xs">Your fitness assistant</p>
           </div>
         </div>
       </div>

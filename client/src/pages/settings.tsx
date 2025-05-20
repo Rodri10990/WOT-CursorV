@@ -1,119 +1,119 @@
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
 
 export default function Settings() {
+  const [activeTab, setActiveTab] = useState("profile");
+
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-heading font-bold mb-6">Settings</h1>
+    <div className="p-4 pb-6">
+      <div className="pt-2 pb-4">
+        <h1 className="text-2xl font-bold">Settings</h1>
+      </div>
       
-      <Tabs defaultValue="account">
-        <TabsList className="mb-4">
-          <TabsTrigger value="account">Account</TabsTrigger>
-          <TabsTrigger value="preferences">Preferences</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="subscription">Subscription</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="account">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Personal Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="h-20 w-20 rounded-full bg-primary-light flex items-center justify-center text-xl text-white font-medium">
+      <div className="flex border-b border-neutral-200 dark:border-neutral-700 mb-4 overflow-x-auto hide-scrollbar">
+        <button 
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "profile" ? "text-primary border-b-2 border-primary" : "text-neutral-500"}`}
+          onClick={() => setActiveTab("profile")}
+        >
+          Profile
+        </button>
+        <button 
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "appearance" ? "text-primary border-b-2 border-primary" : "text-neutral-500"}`}
+          onClick={() => setActiveTab("appearance")}
+        >
+          Appearance
+        </button>
+        <button 
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "notifications" ? "text-primary border-b-2 border-primary" : "text-neutral-500"}`}
+          onClick={() => setActiveTab("notifications")}
+        >
+          Notifications
+        </button>
+        <button 
+          className={`px-4 py-2 font-medium text-sm whitespace-nowrap ${activeTab === "privacy" ? "text-primary border-b-2 border-primary" : "text-neutral-500"}`}
+          onClick={() => setActiveTab("privacy")}
+        >
+          Privacy
+        </button>
+      </div>
+      
+      {/* Profile Tab */}
+      {activeTab === "profile" && (
+        <div>
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4 mb-4">
+                <div className="h-16 w-16 rounded-full bg-primary flex items-center justify-center text-lg text-white font-medium">
                   JS
                 </div>
-                <Button variant="outline">Change Photo</Button>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input id="name" defaultValue="Jamie Smith" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue="jamie.smith@example.com" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input id="username" defaultValue="jamiesmith" />
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input id="phone" type="tel" defaultValue="(555) 123-4567" />
+                <div>
+                  <h3 className="font-medium">Jamie Smith</h3>
+                  <p className="text-xs text-neutral-400">Member since May 2024</p>
                 </div>
               </div>
               
-              <Button className="bg-primary mt-4">Save Changes</Button>
+              <Button variant="outline" size="sm" className="w-full">
+                <span className="material-icons text-sm mr-1">photo_camera</span>
+                Change Photo
+              </Button>
             </CardContent>
           </Card>
           
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name" className="text-sm font-medium">Full Name</Label>
+              <Input id="name" defaultValue="Jamie Smith" className="mt-1" />
+            </div>
+            
+            <div>
+              <Label htmlFor="email" className="text-sm font-medium">Email</Label>
+              <Input id="email" type="email" defaultValue="jamie.smith@example.com" className="mt-1" />
+            </div>
+            
+            <div>
+              <Label htmlFor="username" className="text-sm font-medium">Username</Label>
+              <Input id="username" defaultValue="jamiesmith" className="mt-1" />
+            </div>
+            
+            <div>
+              <Label htmlFor="phone" className="text-sm font-medium">Phone Number</Label>
+              <Input id="phone" type="tel" defaultValue="(555) 123-4567" className="mt-1" />
+            </div>
+            
+            <Button className="w-full bg-primary hover:bg-primary/90 mt-2">Save Changes</Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Appearance Tab */}
+      {activeTab === "appearance" && (
+        <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Password</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="current-password">Current Password</Label>
-                <Input id="current-password" type="password" />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="new-password">New Password</Label>
-                <Input id="new-password" type="password" />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm New Password</Label>
-                <Input id="confirm-password" type="password" />
-              </div>
-              
-              <Button className="bg-primary mt-2">Update Password</Button>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="preferences">
-          <Card>
-            <CardHeader>
-              <CardTitle>App Preferences</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
+            <CardContent className="p-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium">Dark Mode</h3>
-                    <p className="text-sm text-neutral-300">Enable dark theme for the app</p>
+                    <p className="text-sm text-neutral-400">Enable dark theme for the app</p>
                   </div>
                   <Switch />
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Measurement Units</h3>
-                    <p className="text-sm text-neutral-300">Choose your preferred unit system</p>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button variant="outline" className="bg-primary-light text-white">Imperial</Button>
-                    <Button variant="outline">Metric</Button>
+                <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                  <h3 className="font-medium mb-2">Measurement Units</h3>
+                  <div className="flex gap-2">
+                    <Button variant="outline" className="flex-1 bg-primary text-white">Imperial</Button>
+                    <Button variant="outline" className="flex-1">Metric</Button>
                   </div>
                 </div>
                 
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-medium">Language</h3>
-                    <p className="text-sm text-neutral-300">Set your preferred language</p>
-                  </div>
-                  <select className="px-3 py-2 rounded border border-neutral-200">
+                <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                  <h3 className="font-medium mb-2">Language</h3>
+                  <select className="w-full px-3 py-2 rounded border border-neutral-200 dark:border-neutral-700 bg-transparent">
                     <option>English</option>
                     <option>Spanish</option>
                     <option>French</option>
@@ -123,151 +123,92 @@ export default function Settings() {
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="notifications">
+        </div>
+      )}
+      
+      {/* Notifications Tab */}
+      {activeTab === "notifications" && (
+        <div className="space-y-4">
           <Card>
-            <CardHeader>
-              <CardTitle>Notification Settings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
+            <CardContent className="p-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-medium">Workout Reminders</h3>
-                    <p className="text-sm text-neutral-300">Get notified before scheduled workouts</p>
+                    <p className="text-sm text-neutral-400">Get notified before workouts</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
                   <div>
                     <h3 className="font-medium">Progress Updates</h3>
-                    <p className="text-sm text-neutral-300">Weekly summaries of your fitness progress</p>
+                    <p className="text-sm text-neutral-400">Weekly progress summaries</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
                   <div>
                     <h3 className="font-medium">AI Coach Tips</h3>
-                    <p className="text-sm text-neutral-300">Personalized tips from your AI trainer</p>
+                    <p className="text-sm text-neutral-400">Tips from your AI trainer</p>
                   </div>
                   <Switch defaultChecked />
                 </div>
                 
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
                   <div>
                     <h3 className="font-medium">Email Notifications</h3>
-                    <p className="text-sm text-neutral-300">Receive updates via email</p>
+                    <p className="text-sm text-neutral-400">Receive updates via email</p>
                   </div>
                   <Switch />
                 </div>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-        
-        <TabsContent value="subscription">
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Current Plan</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="bg-primary/10 p-4 rounded-lg mb-4">
+        </div>
+      )}
+      
+      {/* Privacy Tab */}
+      {activeTab === "privacy" && (
+        <div className="space-y-4">
+          <Card>
+            <CardContent className="p-4">
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-bold text-xl">Premium Plan</h3>
-                    <p className="text-sm text-neutral-300">Billed annually</p>
+                    <h3 className="font-medium">Show Profile</h3>
+                    <p className="text-sm text-neutral-400">Allow others to see your profile</p>
                   </div>
-                  <div className="bg-primary text-white px-3 py-1 rounded-full text-sm">
-                    Active
-                  </div>
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-2">
-                  <div className="flex items-center">
-                    <span className="material-icons text-primary mr-2">check_circle</span>
-                    <span>AI Trainer Access</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="material-icons text-primary mr-2">check_circle</span>
-                    <span>Custom Workout Plans</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="material-icons text-primary mr-2">check_circle</span>
-                    <span>Advanced Analytics</span>
-                  </div>
-                  <div className="flex items-center">
-                    <span className="material-icons text-primary mr-2">check_circle</span>
-                    <span>Nutrition Tracking</span>
-                  </div>
-                </div>
-                <div className="mt-4 flex justify-end">
-                  <p className="font-bold text-lg">$99.99/year</p>
-                </div>
-              </div>
-              
-              <div className="flex space-x-3">
-                <Button variant="outline">Change Plan</Button>
-                <Button variant="destructive">Cancel Subscription</Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>Billing Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div>
-                  <p className="font-medium">Payment Method</p>
-                  <div className="flex items-center mt-2">
-                    <span className="material-icons mr-2">credit_card</span>
-                    <span>•••• •••• •••• 4242</span>
-                    <span className="ml-2 text-sm text-neutral-300">Expires 05/25</span>
-                    <Button variant="ghost" className="ml-auto text-primary" size="sm">
-                      Edit
-                    </Button>
-                  </div>
+                  <Switch defaultChecked />
                 </div>
                 
-                <div>
-                  <p className="font-medium">Billing Address</p>
-                  <p className="text-sm mt-2">
-                    123 Fitness Street<br />
-                    Workout City, WO 12345<br />
-                    United States
-                  </p>
-                  <Button variant="ghost" className="mt-2 text-primary" size="sm">
-                    Edit
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                  <div>
+                    <h3 className="font-medium">Share Workout Data</h3>
+                    <p className="text-sm text-neutral-400">Allow friends to see your workouts</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="flex items-center justify-between pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                  <div>
+                    <h3 className="font-medium">Data Collection</h3>
+                    <p className="text-sm text-neutral-400">Help improve the app</p>
+                  </div>
+                  <Switch defaultChecked />
+                </div>
+                
+                <div className="pt-2 border-t border-neutral-200 dark:border-neutral-700">
+                  <Button variant="outline" className="w-full text-red-500 mt-2">
+                    Delete Account
                   </Button>
                 </div>
-                
-                <div>
-                  <p className="font-medium">Billing History</p>
-                  <ul className="mt-2 space-y-2">
-                    <li className="text-sm flex justify-between">
-                      <span>May 1, 2025</span>
-                      <span>$99.99</span>
-                      <Button variant="ghost" size="sm" className="p-0 h-auto">
-                        <span className="material-icons text-primary text-sm">receipt</span>
-                      </Button>
-                    </li>
-                    <li className="text-sm flex justify-between">
-                      <span>May 1, 2024</span>
-                      <span>$99.99</span>
-                      <Button variant="ghost" size="sm" className="p-0 h-auto">
-                        <span className="material-icons text-primary text-sm">receipt</span>
-                      </Button>
-                    </li>
-                  </ul>
-                </div>
               </div>
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+        </div>
+      )}
     </div>
   );
 }

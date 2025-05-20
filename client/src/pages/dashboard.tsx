@@ -107,6 +107,42 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       
+      {/* Progress Section */}
+      <h2 className="text-lg font-semibold mb-3">Your Progress</h2>
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        <Card className="overflow-hidden">
+          <CardHeader className="p-3 bg-gradient-to-r from-blue-500 to-blue-600">
+            <CardTitle className="text-sm font-medium text-white">Weight</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xl font-bold">175 lbs</div>
+              <div className="flex items-center text-green-500">
+                <span className="material-icons text-sm">arrow_downward</span>
+                <span className="text-xs">2.5 lbs</span>
+              </div>
+            </div>
+            <p className="text-xs text-neutral-400 mt-1">Last 30 days</p>
+          </CardContent>
+        </Card>
+        
+        <Card className="overflow-hidden">
+          <CardHeader className="p-3 bg-gradient-to-r from-purple-500 to-purple-600">
+            <CardTitle className="text-sm font-medium text-white">Body Fat</CardTitle>
+          </CardHeader>
+          <CardContent className="p-3">
+            <div className="flex items-center justify-between">
+              <div className="text-xl font-bold">18.5%</div>
+              <div className="flex items-center text-green-500">
+                <span className="material-icons text-sm">arrow_downward</span>
+                <span className="text-xs">1.2%</span>
+              </div>
+            </div>
+            <p className="text-xs text-neutral-400 mt-1">Last 30 days</p>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Recent Activity */}
       <h2 className="text-lg font-semibold mb-3">Recent Activity</h2>
       <Card>

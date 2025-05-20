@@ -40,13 +40,13 @@ export default function TabBar() {
         </Link>
         
         <Link
-          href="/progress"
+          href="/nutrition"
           className={`flex flex-col items-center justify-center w-full h-full ${
-            isActive("/progress") ? "text-primary" : "text-neutral-500"
+            isActive("/nutrition") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-2xl">trending_up</span>
-          <span className="text-xs mt-1">Progress</span>
+          <span className="material-icons text-2xl">restaurant</span>
+          <span className="text-xs mt-1">Nutrition</span>
         </Link>
         
         <Link
@@ -55,8 +55,8 @@ export default function TabBar() {
             isActive("/settings") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-2xl">person</span>
-          <span className="text-xs mt-1">Profile</span>
+          <span className="material-icons text-2xl">settings</span>
+          <span className="text-xs mt-1">Settings</span>
         </Link>
       </div>
     </div>

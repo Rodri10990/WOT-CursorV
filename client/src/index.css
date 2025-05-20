@@ -23,6 +23,16 @@
     @apply rounded-2xl rounded-tr-none;
   }
   
+  /* Hide scrollbar but allow scrolling */
+  .hide-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+  
   /* Responsive adjustments for different screen sizes */
   @media (max-width: 640px) {
     h1 {

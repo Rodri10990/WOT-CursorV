@@ -25,9 +25,9 @@ export default function MobileNav() {
             <span className="material-icons">trending_up</span>
             <span className="text-xs mt-1">Progress</span>
         </Link>
-        <Link href="/more" className={`flex flex-col items-center px-3 ${isActive('/more') ? 'text-primary' : 'text-neutral-300'}`}>
-            <span className="material-icons">more_horiz</span>
-            <span className="text-xs mt-1">More</span>
+        <Link href="/settings" className={`flex flex-col items-center px-3 ${isActive('/settings') ? 'text-primary' : 'text-neutral-300'}`}>
+            <span className="material-icons">settings</span>
+            <span className="text-xs mt-1">Settings</span>
         </Link>
       </div>
     </nav>

@@ -89,13 +89,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Workout generation endpoint
   app.post("/api/trainer/generate-workout", async (req: Request, res: Response) => {
     try {
-      const { goals, timeConstraint } = req.body;
+      const { goals, timeConstraint, equipment } = req.body;
       
       if (!goals || !timeConstraint) {
         return res.status(400).json({ message: "Goals and time constraint are required" });
       }
       
-      const workoutPlan = await generateWorkoutPlan(goals, timeConstraint);
+      const workoutPlan = await generateWorkoutPlan(goals, timeConstraint, equipment);
       return res.json(workoutPlan);
     } catch (error) {
       console.error("Error generating workout:", error);

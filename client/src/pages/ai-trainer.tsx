@@ -3,6 +3,7 @@ import ChatInterface from "@/components/workout/chat-interface";
 import MessageInput from "@/components/workout/message-input";
 import WorkoutPlanCard from "@/components/workout/workout-plan-card";
 import ExerciseFormCard from "@/components/workout/exercise-form-card";
+import EquipmentSelector from "@/components/workout/equipment-selector";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { MessageEntry } from "@shared/schema";
@@ -50,9 +51,12 @@ export default function AITrainer() {
     queryKey: ["/api/trainer/conversation"],
   });
 
+  // State for selected equipment
+  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(["none"]);
+  
   // Generate workout plan mutation
   const generateWorkoutMutation = useMutation({
-    mutationFn: async (query: { goals: string, timeConstraint: number }) => {
+    mutationFn: async (query: { goals: string, timeConstraint: number, equipment: string[] }) => {
       const response = await apiRequest(
         "POST",
         "/api/trainer/generate-workout",
@@ -111,7 +115,8 @@ export default function AITrainer() {
         // Generate workout plan in parallel
         generateWorkoutMutation.mutate({ 
           goals: message, 
-          timeConstraint
+          timeConstraint,
+          equipment: selectedEquipment
         });
       }
       
@@ -242,6 +247,9 @@ export default function AITrainer() {
         isTyping={isTyping} 
         specialContent={
           <>
+            {messageContainsWorkoutPlan(messages[messages.length - 1]?.content || "") && (
+              <EquipmentSelector onEquipmentChange={setSelectedEquipment} />
+            )}
             {workoutPlan && <WorkoutPlanCard workoutPlan={workoutPlan} />}
             {exerciseForm && <ExerciseFormCard formGuide={exerciseForm} />}
           </>

@@ -89,20 +89,232 @@ function getMockResponse(lastMessage: MessageEntry): MessageEntry {
   };
 }
 
-export async function generateWorkoutPlan(userGoals: string, timeConstraint: number): Promise<any> {
+export async function generateWorkoutPlan(userGoals: string, timeConstraint: number, equipment?: string[]): Promise<any> {
   try {
-    // Return a predefined workout plan
-    return {
-      name: `${timeConstraint}-Minute ${userGoals.includes("strength") ? "Strength" : "Full-Body"} Workout`,
-      description: `A balanced routine for ${userGoals.includes("beginner") ? "beginners" : "all fitness levels"}`,
-      duration: timeConstraint,
-      exercises: [
-        { name: "Goblet Squats", sets: 3, reps: 12 },
-        { name: "Push-ups", sets: 3, reps: 15 },
-        { name: "Dumbbell Rows", sets: 3, reps: 12 },
-        { name: "Lunges", sets: 2, reps: 10 },
-        { name: "Plank", sets: 3, duration: 30 }
+    // Normalize user goals
+    const goals = userGoals.toLowerCase();
+    
+    // Extract workout type
+    let workoutType = "Full-Body";
+    if (goals.includes("strength")) workoutType = "Strength";
+    if (goals.includes("cardio")) workoutType = "Cardio";
+    if (goals.includes("hiit")) workoutType = "HIIT";
+    if (goals.includes("flexibility") || goals.includes("yoga")) workoutType = "Flexibility";
+    
+    // Extract fitness level
+    let fitnessLevel = "intermediate";
+    if (goals.includes("beginner")) fitnessLevel = "beginner";
+    if (goals.includes("advanced")) fitnessLevel = "advanced";
+    
+    // Equipment-based exercises database
+    const exercisesByEquipment: Record<string, Array<{name: string, type: string}>> = {
+      "none": [
+        { name: "Push-ups", type: "upper" },
+        { name: "Bodyweight Squats", type: "lower" },
+        { name: "Lunges", type: "lower" },
+        { name: "Plank", type: "core" },
+        { name: "Mountain Climbers", type: "cardio" },
+        { name: "Jumping Jacks", type: "cardio" },
+        { name: "Burpees", type: "full" },
+        { name: "Glute Bridges", type: "lower" },
+        { name: "Tricep Dips", type: "upper" },
+        { name: "Crunches", type: "core" },
+        { name: "Side Planks", type: "core" },
+        { name: "Superman", type: "back" },
+        { name: "Wall Sit", type: "lower" },
+        { name: "High Knees", type: "cardio" }
+      ],
+      "dumbbells": [
+        { name: "Dumbbell Squats", type: "lower" },
+        { name: "Dumbbell Lunges", type: "lower" },
+        { name: "Dumbbell Rows", type: "upper" },
+        { name: "Dumbbell Press", type: "upper" },
+        { name: "Dumbbell Shoulder Press", type: "upper" },
+        { name: "Dumbbell Curls", type: "upper" },
+        { name: "Dumbbell Tricep Extensions", type: "upper" },
+        { name: "Goblet Squats", type: "lower" },
+        { name: "Renegade Rows", type: "upper" },
+        { name: "Dumbbell Romanian Deadlifts", type: "lower" }
+      ],
+      "resistance bands": [
+        { name: "Band Squats", type: "lower" },
+        { name: "Band Pull-Aparts", type: "upper" },
+        { name: "Banded Rows", type: "upper" },
+        { name: "Banded Glute Bridges", type: "lower" },
+        { name: "Lateral Band Walks", type: "lower" },
+        { name: "Banded Shoulder Press", type: "upper" },
+        { name: "Banded Bicep Curls", type: "upper" }
+      ],
+      "kettlebell": [
+        { name: "Kettlebell Swings", type: "full" },
+        { name: "Kettlebell Goblet Squats", type: "lower" },
+        { name: "Kettlebell Rows", type: "upper" },
+        { name: "Kettlebell Clean and Press", type: "full" },
+        { name: "Turkish Get-ups", type: "full" }
+      ],
+      "bench": [
+        { name: "Bench Press", type: "upper" },
+        { name: "Incline Bench Press", type: "upper" },
+        { name: "Bench Dips", type: "upper" },
+        { name: "Step-ups", type: "lower" },
+        { name: "Box Jumps", type: "lower" }
+      ],
+      "barbell": [
+        { name: "Barbell Squats", type: "lower" },
+        { name: "Barbell Deadlifts", type: "lower" },
+        { name: "Barbell Bench Press", type: "upper" },
+        { name: "Barbell Rows", type: "upper" },
+        { name: "Barbell Overhead Press", type: "upper" },
+        { name: "Barbell Lunges", type: "lower" }
+      ],
+      "pull-up bar": [
+        { name: "Pull-ups", type: "upper" },
+        { name: "Chin-ups", type: "upper" },
+        { name: "Hanging Leg Raises", type: "core" },
+        { name: "Hanging Knee Raises", type: "core" }
+      ],
+      "yoga mat": [
+        { name: "Downward Dog", type: "flexibility" },
+        { name: "Warrior Pose", type: "flexibility" },
+        { name: "Child's Pose", type: "flexibility" },
+        { name: "Cobra Stretch", type: "flexibility" }
       ]
+    };
+    
+    // If no equipment specified, default to bodyweight
+    let availableEquipment = equipment || ["none"];
+    
+    // If they mentioned equipment in the goals, extract it
+    const equipmentKeywords = [
+      "dumbbell", "kettlebell", "barbell", "bench", 
+      "resistance band", "pull-up bar", "yoga mat", "no equipment"
+    ];
+    
+    for (const keyword of equipmentKeywords) {
+      if (goals.includes(keyword)) {
+        if (keyword === "no equipment") {
+          availableEquipment = ["none"];
+          break;
+        } else if (keyword === "resistance band") {
+          availableEquipment.push("resistance bands");
+        } else if (keyword === "pull-up bar") {
+          availableEquipment.push("pull-up bar");
+        } else {
+          availableEquipment.push(keyword);
+        }
+      }
+    }
+    
+    // Remove duplicates
+    availableEquipment = Array.from(new Set(availableEquipment));
+    
+    // Collect exercises based on available equipment
+    let availableExercises: Array<{name: string, type: string}> = [];
+    for (const equip of availableEquipment) {
+      if (exercisesByEquipment[equip]) {
+        availableExercises = [...availableExercises, ...exercisesByEquipment[equip]];
+      }
+    }
+    
+    // Make sure we always have some exercises by including bodyweight if needed
+    if (availableExercises.length < 5) {
+      availableExercises = [...availableExercises, ...exercisesByEquipment["none"]];
+    }
+    
+    // Remove duplicates
+    availableExercises = availableExercises.filter((exercise, index, self) =>
+      index === self.findIndex((e) => e.name === exercise.name)
+    );
+    
+    // Select exercises based on workout type
+    let selectedExercises: Array<{name: string, type: string}> = [];
+    
+    if (workoutType === "Cardio") {
+      selectedExercises = availableExercises.filter(ex => ex.type === "cardio" || ex.type === "full");
+    } else if (workoutType === "Strength") {
+      selectedExercises = availableExercises.filter(ex => 
+        ex.type === "upper" || ex.type === "lower" || ex.type === "full"
+      );
+    } else if (workoutType === "Flexibility") {
+      selectedExercises = availableExercises.filter(ex => ex.type === "flexibility");
+      if (selectedExercises.length < 4) {
+        // Add some core and full body exercises if we don't have enough flexibility ones
+        selectedExercises = [
+          ...selectedExercises,
+          ...availableExercises.filter(ex => ex.type === "core" || ex.type === "full").slice(0, 4 - selectedExercises.length)
+        ];
+      }
+    } else if (workoutType === "HIIT") {
+      // For HIIT, prioritize full body and cardio, but include some strength
+      selectedExercises = availableExercises.filter(ex => ex.type === "cardio" || ex.type === "full");
+      const strengthExercises = availableExercises.filter(ex => 
+        ex.type === "upper" || ex.type === "lower" || ex.type === "core"
+      );
+      selectedExercises = [...selectedExercises, ...strengthExercises.slice(0, 4)];
+    } else {
+      // For Full-Body, ensure a balanced mix of all types
+      const upperExercises = availableExercises.filter(ex => ex.type === "upper").slice(0, 2);
+      const lowerExercises = availableExercises.filter(ex => ex.type === "lower").slice(0, 2);
+      const coreExercises = availableExercises.filter(ex => ex.type === "core").slice(0, 1);
+      const fullExercises = availableExercises.filter(ex => ex.type === "full").slice(0, 1);
+      const cardioExercises = availableExercises.filter(ex => ex.type === "cardio").slice(0, 1);
+      
+      selectedExercises = [
+        ...upperExercises,
+        ...lowerExercises,
+        ...coreExercises,
+        ...fullExercises,
+        ...cardioExercises
+      ];
+    }
+    
+    // Limit number of exercises based on time constraint
+    let exerciseCount = Math.min(Math.floor(timeConstraint / 5), 8);
+    exerciseCount = Math.max(exerciseCount, 3); // At least 3 exercises
+    
+    selectedExercises = selectedExercises.slice(0, exerciseCount);
+    
+    // Randomly shuffle the exercises
+    selectedExercises = selectedExercises.sort(() => Math.random() - 0.5);
+    
+    // Calculate sets and reps based on workout type and fitness level
+    const finalExercises = selectedExercises.map(exercise => {
+      let sets = 3; // default
+      let reps = 12; // default
+      let duration = undefined; // for timed exercises
+      
+      // Adjust based on fitness level
+      if (fitnessLevel === "beginner") {
+        sets = 2;
+        reps = 10;
+      } else if (fitnessLevel === "advanced") {
+        sets = 4;
+        reps = 15;
+      }
+      
+      // Adjust based on exercise type
+      if (exercise.type === "cardio") {
+        duration = fitnessLevel === "beginner" ? 30 : fitnessLevel === "advanced" ? 60 : 45;
+        reps = undefined;
+      } else if (exercise.type === "core" || exercise.name.includes("Plank")) {
+        duration = fitnessLevel === "beginner" ? 20 : fitnessLevel === "advanced" ? 45 : 30;
+        reps = undefined;
+      }
+      
+      return {
+        name: exercise.name,
+        sets,
+        reps,
+        duration
+      };
+    });
+    
+    // Create the final workout plan
+    return {
+      name: `${timeConstraint}-Minute ${workoutType} Workout`,
+      description: `A ${fitnessLevel} level workout with ${availableEquipment.filter(e => e !== "none").join(", ") || "bodyweight"} exercises`,
+      duration: timeConstraint,
+      exercises: finalExercises
     };
   } catch (error) {
     console.error("Error generating workout plan:", error);

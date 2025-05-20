@@ -9,7 +9,7 @@ export default function MobileNav() {
   return (
     <nav className="md:hidden bg-white border-t border-neutral-200 py-2">
       <div className="flex justify-around">
-        <Link href="/dashboard" className={`flex flex-col items-center px-3 ${isActive('/dashboard') ? 'text-primary' : 'text-neutral-300'}`}>
+        <Link href="/" className={`flex flex-col items-center px-3 ${isActive('/') ? 'text-primary' : 'text-neutral-300'}`}>
             <span className="material-icons">dashboard</span>
             <span className="text-xs mt-1">Dashboard</span>
         </Link>

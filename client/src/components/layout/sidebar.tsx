@@ -26,7 +26,7 @@ export default function Sidebar({ isOpen }: SidebarProps) {
         <nav className="mt-8">
           <ul className="space-y-2">
             <li>
-              <Link href="/dashboard" className={`flex items-center py-2 px-4 rounded hover:bg-neutral-100 ${isActive('/dashboard') ? 'bg-primary-light text-white' : 'text-neutral-300'}`}>
+              <Link href="/" className={`flex items-center py-2 px-4 rounded hover:bg-neutral-100 ${isActive('/') ? 'bg-primary-light text-white' : 'text-neutral-300'}`}>
                 <span className="material-icons mr-3">dashboard</span>
                 Dashboard
               </Link>

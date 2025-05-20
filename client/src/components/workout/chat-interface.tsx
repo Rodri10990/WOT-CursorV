@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, ReactNode } from "react";
 import { MessageEntry } from "@shared/schema";
 import WorkoutPlanCard from "./workout-plan-card";
 import ExerciseFormCard from "./exercise-form-card";
@@ -9,15 +9,16 @@ interface ChatInterfaceProps {
   messages: MessageEntry[];
   isLoading: boolean;
   isTyping: boolean;
+  specialContent?: ReactNode;
 }
 
-export default function ChatInterface({ messages, isLoading, isTyping }: ChatInterfaceProps) {
+export default function ChatInterface({ messages, isLoading, isTyping, specialContent }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Automatic scroll to bottom when new messages arrive
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isTyping, specialContent]);
 
   // Initial welcome message if no messages exist
   const welcomeMessage: MessageEntry = {

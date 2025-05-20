@@ -5,26 +5,51 @@ import { useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
-export default function WorkoutPlanCard() {
+interface Exercise {
+  name: string;
+  sets?: number;
+  reps?: number;
+  duration?: number;
+  notes?: string;
+}
+
+interface WorkoutPlan {
+  name: string;
+  description: string;
+  duration: number;
+  exercises: Exercise[];
+}
+
+interface WorkoutPlanCardProps {
+  workoutPlan?: WorkoutPlan;
+}
+
+export default function WorkoutPlanCard({ workoutPlan }: WorkoutPlanCardProps) {
   const { toast } = useToast();
   const [saved, setSaved] = useState(false);
+  
+  const defaultPlan: WorkoutPlan = {
+    name: "30-Minute Strength Routine",
+    description: "Balanced routine for strength training",
+    duration: 30,
+    exercises: [
+      { name: "Goblet Squats", sets: 3, reps: 12 },
+      { name: "Push-ups", sets: 3, reps: 15 },
+      { name: "Dumbbell Rows", sets: 3, reps: 12 },
+      { name: "Lunges", sets: 2, reps: 10 },
+      { name: "Plank", sets: 3, duration: 30 }
+    ]
+  };
+  
+  // Use provided workout plan or fall back to default
+  const plan = workoutPlan || defaultPlan;
   
   const saveWorkoutMutation = useMutation({
     mutationFn: async () => {
       const response = await apiRequest(
         "POST",
         "/api/workouts",
-        {
-          name: "30-Minute Strength Routine",
-          description: "Balanced routine for strength training",
-          exercises: [
-            { name: "Goblet Squats", sets: 3, reps: 12 },
-            { name: "Push-ups", sets: 3, reps: 15 },
-            { name: "Dumbbell Rows", sets: 3, reps: 12 },
-            { name: "Lunges", sets: 2, reps: 10 },
-            { name: "Plank", sets: 3, duration: 30 }
-          ]
-        }
+        plan
       );
       return response.json();
     },
@@ -43,54 +68,46 @@ export default function WorkoutPlanCard() {
       });
     },
   });
+  
+  function formatExercise(exercise: Exercise): string {
+    if (exercise.sets && exercise.reps) {
+      return `${exercise.sets} sets of ${exercise.reps} reps`;
+    } else if (exercise.sets && exercise.duration) {
+      return `${exercise.sets} sets of ${exercise.duration} seconds`;
+    } else if (exercise.duration) {
+      return `${exercise.duration} seconds`;
+    } else if (exercise.reps) {
+      return `${exercise.reps} reps`;
+    } else {
+      return exercise.notes || "";
+    }
+  }
 
   return (
-    <Card className="bg-white rounded-lg shadow-sm overflow-hidden mt-2 mb-2">
-      <CardHeader className="bg-primary-dark text-white p-3">
-        <CardTitle className="font-heading font-medium">30-Minute Strength Routine</CardTitle>
+    <Card className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm overflow-hidden mt-2 mb-2">
+      <CardHeader className="bg-primary text-white p-3">
+        <CardTitle className="font-medium text-sm">{plan.name}</CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
-        <ul className="space-y-3">
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 mt-0.5">fitness_center</span>
-            <div>
-              <p className="font-medium">Goblet Squats</p>
-              <p className="text-sm text-neutral-300">3 sets of 12 reps</p>
-            </div>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 mt-0.5">fitness_center</span>
-            <div>
-              <p className="font-medium">Push-ups</p>
-              <p className="text-sm text-neutral-300">3 sets of 10-15 reps</p>
-            </div>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 mt-0.5">fitness_center</span>
-            <div>
-              <p className="font-medium">Dumbbell Rows</p>
-              <p className="text-sm text-neutral-300">3 sets of 12 reps each arm</p>
-            </div>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 mt-0.5">fitness_center</span>
-            <div>
-              <p className="font-medium">Lunges</p>
-              <p className="text-sm text-neutral-300">2 sets of 10 reps each leg</p>
-            </div>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 mt-0.5">fitness_center</span>
-            <div>
-              <p className="font-medium">Plank</p>
-              <p className="text-sm text-neutral-300">3 sets of 30 seconds</p>
-            </div>
-          </li>
+      <CardContent className="p-3">
+        <p className="text-xs text-neutral-500 dark:text-neutral-400 mb-3">
+          {plan.description} • {plan.duration} minutes
+        </p>
+        <ul className="space-y-2">
+          {plan.exercises.map((exercise, index) => (
+            <li className="flex items-start" key={index}>
+              <span className="material-icons text-primary mr-2 mt-0.5 text-sm">fitness_center</span>
+              <div>
+                <p className="font-medium text-sm">{exercise.name}</p>
+                <p className="text-xs text-neutral-400">{formatExercise(exercise)}</p>
+              </div>
+            </li>
+          ))}
         </ul>
-        <div className="flex justify-between mt-4">
+        <div className="flex justify-between mt-3">
           <Button 
             variant="ghost" 
-            className="text-primary flex items-center text-sm"
+            size="sm"
+            className="text-primary flex items-center text-xs"
             onClick={() => saveWorkoutMutation.mutate()}
             disabled={saved || saveWorkoutMutation.isPending}
           >
@@ -101,7 +118,8 @@ export default function WorkoutPlanCard() {
           </Button>
           <Button 
             variant="ghost"
-            className="text-primary flex items-center text-sm"
+            size="sm"
+            className="text-primary flex items-center text-xs"
           >
             <span className="material-icons text-sm mr-1">edit</span>
             Modify

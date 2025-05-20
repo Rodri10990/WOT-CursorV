@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import ChatInterface from "@/components/workout/chat-interface";
 import MessageInput from "@/components/workout/message-input";
+import WorkoutPlanCard from "@/components/workout/workout-plan-card";
+import ExerciseFormCard from "@/components/workout/exercise-form-card";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { MessageEntry } from "@shared/schema";
@@ -12,10 +14,35 @@ interface ConversationResponse {
   messages: MessageEntry[];
 }
 
+interface Exercise {
+  name: string;
+  sets?: number;
+  reps?: number;
+  duration?: number;
+  notes?: string;
+}
+
+interface WorkoutPlan {
+  name: string;
+  description: string;
+  duration: number;
+  exercises: Exercise[];
+}
+
+interface ExerciseFormGuide {
+  exerciseName: string;
+  steps: string[];
+  keyPoints: string[];
+  commonMistakes: string[];
+  beginnerModifications: string[];
+}
+
 export default function AITrainer() {
   const [messages, setMessages] = useState<MessageEntry[]>([]);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [isTyping, setIsTyping] = useState(false);
+  const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
+  const [exerciseForm, setExerciseForm] = useState<ExerciseFormGuide | null>(null);
   const { toast } = useToast();
 
   // Fetch existing conversation or start a new one
@@ -23,10 +50,79 @@ export default function AITrainer() {
     queryKey: ["/api/trainer/conversation"],
   });
 
+  // Generate workout plan mutation
+  const generateWorkoutMutation = useMutation({
+    mutationFn: async (query: { goals: string, timeConstraint: number }) => {
+      const response = await apiRequest(
+        "POST",
+        "/api/trainer/generate-workout",
+        query
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data && data.name) {
+        setWorkoutPlan(data);
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Failed to generate workout plan",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Get exercise form guidance mutation
+  const getExerciseFormMutation = useMutation({
+    mutationFn: async (exerciseName: string) => {
+      const response = await apiRequest(
+        "GET",
+        `/api/trainer/exercise-form/${encodeURIComponent(exerciseName)}`
+      );
+      return response.json();
+    },
+    onSuccess: (data) => {
+      if (data && data.exerciseName) {
+        setExerciseForm(data);
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Failed to get exercise form guidance",
+        description: "Please try again",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Send message mutation
   const sendMessageMutation = useMutation({
     mutationFn: async (message: string) => {
       setIsTyping(true);
+      
+      // Check if message is asking for a workout plan
+      if (message.toLowerCase().includes("workout plan") || 
+          message.toLowerCase().includes("workout routine")) {
+        const timeMatch = message.match(/(\d+)\s*minutes?/i);
+        const timeConstraint = timeMatch ? parseInt(timeMatch[1]) : 30;
+        
+        // Generate workout plan in parallel
+        generateWorkoutMutation.mutate({ 
+          goals: message, 
+          timeConstraint
+        });
+      }
+      
+      // Check if message is asking about exercise form
+      const exerciseFormMatch = message.match(/form\s+for\s+([a-z\s]+)/i);
+      if (exerciseFormMatch && exerciseFormMatch[1]) {
+        // Get exercise form guidance in parallel
+        getExerciseFormMutation.mutate(exerciseFormMatch[1].trim());
+      }
+      
+      // Continue with normal message processing
       const response = await apiRequest(
         "POST",
         "/api/trainer/message",
@@ -45,6 +141,15 @@ export default function AITrainer() {
       if (data.conversationId && !conversationId) {
         setConversationId(data.conversationId);
       }
+      
+      // Handle special data from response
+      if (data.workout) {
+        setWorkoutPlan(data.workout);
+      }
+      if (data.exerciseForm) {
+        setExerciseForm(data.exerciseForm);
+      }
+      
       queryClient.invalidateQueries({ queryKey: ["/api/trainer/conversation"] });
     },
     onError: () => {
@@ -77,8 +182,32 @@ export default function AITrainer() {
     return () => window.removeEventListener('offline', handleError);
   }, [toast]);
 
+  // Function to detect content type in user messages
+  const messageContainsWorkoutPlan = (msg: string): boolean => {
+    return msg.toLowerCase().includes("workout plan") || 
+           msg.toLowerCase().includes("workout routine") ||
+           msg.toLowerCase().includes("exercise plan");
+  };
+  
+  const messageContainsExerciseForm = (msg: string): boolean => {
+    return msg.toLowerCase().includes("form for") || 
+           (msg.toLowerCase().includes("how to") && 
+            msg.toLowerCase().includes("perform")) ||
+           (msg.toLowerCase().includes("exercise") && 
+            msg.toLowerCase().includes("technique"));
+  };
+
   const handleSendMessage = (message: string) => {
     if (!message.trim()) return;
+    
+    // Clear special content if message isn't about them
+    if (!messageContainsWorkoutPlan(message)) {
+      setWorkoutPlan(null);
+    }
+    
+    if (!messageContainsExerciseForm(message)) {
+      setExerciseForm(null);
+    }
     
     // Add user message immediately to UI
     const userMessage: MessageEntry = {
@@ -106,11 +235,17 @@ export default function AITrainer() {
         </div>
       </div>
 
-      {/* Chat Interface */}
+      {/* Chat Interface with Special Cards */}
       <ChatInterface 
         messages={messages} 
         isLoading={isLoading} 
         isTyping={isTyping} 
+        specialContent={
+          <>
+            {workoutPlan && <WorkoutPlanCard workoutPlan={workoutPlan} />}
+            {exerciseForm && <ExerciseFormCard formGuide={exerciseForm} />}
+          </>
+        }
       />
 
       {/* Message Input */}

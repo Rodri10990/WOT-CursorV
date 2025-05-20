@@ -1,59 +1,112 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function ExerciseFormCard() {
+interface ExerciseFormGuide {
+  exerciseName: string;
+  steps: string[];
+  keyPoints: string[];
+  commonMistakes: string[];
+  beginnerModifications: string[];
+}
+
+interface ExerciseFormCardProps {
+  formGuide?: ExerciseFormGuide;
+}
+
+export default function ExerciseFormCard({ formGuide }: ExerciseFormCardProps) {
+  // Default exercise form guide if none is provided
+  const defaultGuide: ExerciseFormGuide = {
+    exerciseName: "Goblet Squat",
+    steps: [
+      "Hold a kettlebell or dumbbell close to your chest with both hands, elbows pointing down.",
+      "Stand with feet slightly wider than shoulder-width apart, toes pointed slightly outward.",
+      "Keeping your chest up and core engaged, push your hips back and bend your knees to lower into a squat.",
+      "Lower until thighs are parallel to the ground (or as low as is comfortable with good form).",
+      "Push through your heels to return to the starting position."
+    ],
+    keyPoints: [
+      "Keep weight in mid-foot and heels (not toes)",
+      "Maintain a neutral spine throughout the movement",
+      "Knees should track over toes, not caving inward",
+      "Brace your core throughout the exercise"
+    ],
+    commonMistakes: [
+      "Letting the knees cave inward",
+      "Rounding the lower back",
+      "Lifting heels off the ground",
+      "Not reaching proper depth"
+    ],
+    beginnerModifications: [
+      "Use a chair or bench to squat to",
+      "Reduce weight or use bodyweight only",
+      "Decrease range of motion until flexibility improves",
+      "Hold onto a stable surface for balance"
+    ]
+  };
+
+  // Use provided guide or fall back to default
+  const guide = formGuide || defaultGuide;
+
   return (
-    <Card className="bg-white rounded-lg shadow-sm overflow-hidden mt-2">
-      <CardHeader className="bg-primary-dark text-white p-3">
-        <CardTitle className="font-heading font-medium">Goblet Squat Form Guide</CardTitle>
+    <Card className="bg-white dark:bg-neutral-800 rounded-lg shadow-sm overflow-hidden mt-2 mb-2">
+      <CardHeader className="bg-primary text-white p-3">
+        <CardTitle className="font-medium text-sm">{guide.exerciseName} Form Guide</CardTitle>
       </CardHeader>
-      <CardContent className="p-4">
-        {/* Using an SVG or illustration instead of an image */}
-        <div className="rounded w-full h-40 mb-4 bg-neutral-100 flex items-center justify-center">
-          {/* SVG placeholder for exercise demonstration */}
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 512 512"
-            className="h-32 w-32 text-primary"
-            fill="currentColor"
-          >
-            <path d="M207.9 512h-160c-20.7 0-37.5-16.8-37.5-37.5v-112.5c0-8.5 3.4-16.6 9.4-22.6l26.8-26.8c11.3-11.3 30.3-11.3 41.6 0 6.6 6.6 9.4 15.6 8.4 24.4 3.1-.5 6.4-.8 9.7-.8 32.3 0 58.5 26.3 58.5 58.5 0 3.3-.3 6.6-.8 9.7 8.8-1.1 17.8 1.8 24.4 8.4 11.3 11.3 11.3 30.3 0 41.6l-26.8 26.8c-6 6-14.1 9.4-22.6 9.4h-112.5c-20.7 0-37.5-16.8-37.5-37.5v-112.5c0-8.5 3.4-16.6 9.4-22.6l26.8-26.8c11.3-11.3 30.3-11.3 41.6 0 6.6 6.6 9.4 15.6 8.4 24.4 3.1-.5 6.4-.8 9.7-.8 32.3 0 58.5 26.3 58.5 58.5 0 3.3-.3 6.6-.8 9.7 8.8-1.1 17.8 1.8 24.4 8.4 11.3 11.3 11.3 30.3 0 41.6l-26.8 26.8c-6 6-14.1 9.4-22.6 9.4h-112.5c-20.7 0-37.5-16.8-37.5-37.5v-112.5c0-8.5 3.4-16.6 9.4-22.6l26.8-26.8c11.3-11.3 30.3-11.3 41.6 0 6.6 6.6 9.4 15.6 8.4 24.4 3.1-.5 6.4-.8 9.7-.8 32.3 0 58.5 26.3 58.5 58.5 0 3.3-.3 6.6-.8 9.7 8.8-1.1 17.8 1.8 24.4 8.4 11.3 11.3 11.3 30.3 0 41.6l-26.8 26.8c-6 6-14.1 9.4-22.6 9.4zm-37.5-150c-12.4 0-22.5 10.1-22.5 22.5s10.1 22.5 22.5 22.5 22.5-10.1 22.5-22.5-10.1-22.5-22.5-22.5zm-65 65c-12.4 0-22.5 10.1-22.5 22.5s10.1 22.5 22.5 22.5 22.5-10.1 22.5-22.5-10.1-22.5-22.5-22.5zm130-130c-12.4 0-22.5 10.1-22.5 22.5s10.1 22.5 22.5 22.5 22.5-10.1 22.5-22.5-10.1-22.5-22.5-22.5zm-65 65c-12.4 0-22.5 10.1-22.5 22.5s10.1 22.5 22.5 22.5 22.5-10.1 22.5-22.5-10.1-22.5-22.5-22.5z"/>
-          </svg>
+      <CardContent className="p-3">
+        {/* Exercise illustration */}
+        <div className="rounded w-full h-32 mb-3 bg-neutral-100 dark:bg-neutral-700 flex items-center justify-center">
+          <span className="material-icons text-primary text-6xl">fitness_center</span>
         </div>
         
-        <h4 className="font-medium mb-2">Steps:</h4>
-        <ol className="list-decimal pl-5 space-y-2 mb-4">
-          <li>Hold a kettlebell or dumbbell close to your chest with both hands, elbows pointing down.</li>
-          <li>Stand with feet slightly wider than shoulder-width apart, toes pointed slightly outward.</li>
-          <li>Keeping your chest up and core engaged, push your hips back and bend your knees to lower into a squat.</li>
-          <li>Lower until thighs are parallel to the ground (or as low as is comfortable with good form).</li>
-          <li>Push through your heels to return to the starting position.</li>
+        <h4 className="font-medium text-sm mb-1">Steps:</h4>
+        <ol className="list-decimal pl-5 space-y-1 mb-3 text-xs">
+          {guide.steps.map((step, index) => (
+            <li key={index}>{step}</li>
+          ))}
         </ol>
         
-        <h4 className="font-medium mb-2">Key Form Points:</h4>
-        <ul className="space-y-2 mb-4">
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 text-sm mt-0.5">check_circle</span>
-            <span>Keep weight in mid-foot and heels (not toes)</span>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 text-sm mt-0.5">check_circle</span>
-            <span>Maintain a neutral spine throughout the movement</span>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 text-sm mt-0.5">check_circle</span>
-            <span>Knees should track over toes, not caving inward</span>
-          </li>
-          <li className="flex items-start">
-            <span className="material-icons text-primary mr-2 text-sm mt-0.5">check_circle</span>
-            <span>Brace your core throughout the exercise</span>
-          </li>
+        <h4 className="font-medium text-sm mb-1">Key Form Points:</h4>
+        <ul className="space-y-1 mb-3">
+          {guide.keyPoints.map((point, index) => (
+            <li className="flex items-start" key={index}>
+              <span className="material-icons text-primary mr-1 text-sm mt-0.5">check_circle</span>
+              <span className="text-xs">{point}</span>
+            </li>
+          ))}
         </ul>
         
+        <div className="space-y-3">
+          <div>
+            <h4 className="font-medium text-sm mb-1">Common Mistakes:</h4>
+            <ul className="space-y-1 mb-2">
+              {guide.commonMistakes.map((mistake, index) => (
+                <li className="flex items-start" key={index}>
+                  <span className="material-icons text-red-500 mr-1 text-sm mt-0.5">error</span>
+                  <span className="text-xs">{mistake}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="font-medium text-sm mb-1">Beginner Modifications:</h4>
+            <ul className="space-y-1">
+              {guide.beginnerModifications.map((mod, index) => (
+                <li className="flex items-start" key={index}>
+                  <span className="material-icons text-accent mr-1 text-sm mt-0.5">tips_and_updates</span>
+                  <span className="text-xs">{mod}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+        
         <Button 
-          className="bg-accent text-white py-2 px-4 rounded flex items-center justify-center w-full"
+          variant="outline"
+          size="sm"
+          className="w-full mt-3 text-xs"
         >
-          <span className="material-icons mr-2">play_circle</span>
+          <span className="material-icons mr-1 text-sm">play_circle</span>
           Watch Video Demo
         </Button>
       </CardContent>

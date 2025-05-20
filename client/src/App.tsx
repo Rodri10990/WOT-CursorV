@@ -5,6 +5,11 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import AITrainer from "@/pages/ai-trainer";
+import Dashboard from "@/pages/dashboard";
+import Workouts from "@/pages/workouts";
+import Progress from "@/pages/progress";
+import Nutrition from "@/pages/nutrition";
+import Settings from "@/pages/settings";
 import Header from "@/components/layout/header";
 import Sidebar from "@/components/layout/sidebar";
 import MobileNav from "@/components/layout/mobile-nav";
@@ -14,7 +19,12 @@ function Router() {
   return (
     <Switch>
       {/* Add pages below */}
+      <Route path="/" component={Dashboard} />
       <Route path="/ai-trainer" component={AITrainer} />
+      <Route path="/workouts" component={Workouts} />
+      <Route path="/progress" component={Progress} />
+      <Route path="/nutrition" component={Nutrition} />
+      <Route path="/settings" component={Settings} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

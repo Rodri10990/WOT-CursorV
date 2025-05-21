@@ -90,24 +90,47 @@ export default function Dashboard() {
         <CardContent className="p-3">
           <ul className="space-y-2">
             <li className="flex items-center">
-              <span className="material-icons text-primary mr-2 text-sm">fitness_center</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2">
+                <path d="M6 5v14"></path>
+                <path d="M18 5v14"></path>
+                <path d="M2 12h20"></path>
+                <path d="M9 12h6"></path>
+              </svg>
               <span className="text-sm">Bench Press - 3×10</span>
             </li>
             <li className="flex items-center">
-              <span className="material-icons text-primary mr-2 text-sm">fitness_center</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2">
+                <path d="M6 5v14"></path>
+                <path d="M18 5v14"></path>
+                <path d="M2 12h20"></path>
+                <path d="M9 12h6"></path>
+              </svg>
               <span className="text-sm">Shoulder Press - 3×12</span>
             </li>
             <li className="flex items-center">
-              <span className="material-icons text-primary mr-2 text-sm">fitness_center</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2">
+                <path d="M6 5v14"></path>
+                <path d="M18 5v14"></path>
+                <path d="M2 12h20"></path>
+                <path d="M9 12h6"></path>
+              </svg>
               <span className="text-sm">Cable Rows - 3×15</span>
             </li>
             <li className="flex items-center">
-              <span className="material-icons text-primary mr-2 text-sm">fitness_center</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2">
+                <path d="M6 5v14"></path>
+                <path d="M18 5v14"></path>
+                <path d="M2 12h20"></path>
+                <path d="M9 12h6"></path>
+              </svg>
               <span className="text-sm">Bicep Curls - 3×12</span>
             </li>
           </ul>
           <div className="text-xs text-neutral-400 mt-3 flex items-center">
-            <span className="material-icons text-neutral-400 mr-1 text-sm">schedule</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400 mr-1">
+              <circle cx="12" cy="12" r="10"></circle>
+              <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
             45 minutes
           </div>
         </CardContent>

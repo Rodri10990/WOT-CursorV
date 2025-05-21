@@ -98,7 +98,8 @@ export function RoutineDaysView() {
           className="mr-2"
           onClick={() => setSelectedRoutine(null)}
         >
-          <span className="material-icons">arrow_back</span>
+          <span className="material-icons mr-1"></span>
+          Back
         </Button>
         <h2 className="text-xl font-bold">{selectedRoutine.name}</h2>
       </div>

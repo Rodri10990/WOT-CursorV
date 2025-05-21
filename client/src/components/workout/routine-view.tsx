@@ -98,7 +98,7 @@ export function RoutineDaysView() {
           className="mr-2"
           onClick={() => setSelectedRoutine(null)}
         >
-          <span className="material-icons mr-1"></span>
+          <span className="material-icons">arrow_back</span>
           Back
         </Button>
         <h2 className="text-xl font-bold">{selectedRoutine.name}</h2>
@@ -153,6 +153,7 @@ export function RoutineDayDetail() {
           onClick={() => setSelectedDay(null)}
         >
           <span className="material-icons">arrow_back</span>
+          Back
         </Button>
         <div>
           <h2 className="text-xl font-bold">{selectedDay.name}</h2>

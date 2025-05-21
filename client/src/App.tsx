@@ -10,6 +10,8 @@ import Workouts from "@/pages/workouts";
 import Progress from "@/pages/progress";
 import Nutrition from "@/pages/nutrition";
 import Settings from "@/pages/settings";
+import RoutineDetail from "@/pages/routine-detail";
+import DayDetail from "@/pages/day-detail";
 import TabBar from "@/components/layout/tab-bar";
 
 function Router() {
@@ -22,6 +24,8 @@ function Router() {
       <Route path="/progress" component={Progress} />
       <Route path="/nutrition" component={Nutrition} />
       <Route path="/settings" component={Settings} />
+      <Route path="/routine/:id" component={RoutineDetail} />
+      <Route path="/routine/:routineId/day/:dayId" component={DayDetail} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

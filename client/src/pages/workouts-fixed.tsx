@@ -66,29 +66,3 @@ function WorkoutHistoryItem({ title, date, duration, completed }: {
     </Card>
   );
 }
-
-function WorkoutHistoryItem({ title, date, duration, completed }: {
-  title: string;
-  date: string;
-  duration: number;
-  completed: boolean;
-}) {
-  return (
-    <Card>
-      <CardContent className="flex items-center justify-between py-4">
-        <div className="flex items-center">
-          <span className={`material-icons mr-3 ${completed ? 'text-primary' : 'text-neutral-300'}`}>
-            {completed ? 'check_circle' : 'cancel'}
-          </span>
-          <div>
-            <h3 className="font-medium">{title}</h3>
-            <p className="text-xs text-neutral-300">{date} • {duration} minutes</p>
-          </div>
-        </div>
-        <Button variant="ghost" size="sm">
-          <span className="material-icons text-sm">visibility</span>
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}

@@ -158,7 +158,10 @@ export default function Progress() {
               <Card key={index}>
                 <CardContent className="flex items-center justify-between py-4">
                   <div className="flex items-center">
-                    <span className="material-icons text-accent mr-3">emoji_events</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500 mr-3">
+                      <circle cx="12" cy="8" r="6"></circle>
+                      <path d="M15.477 12.89 17 22l-5-3-5 3 1.523-9.11"></path>
+                    </svg>
                     <div>
                       <h3 className="font-medium">{record.exercise}</h3>
                       <p className="text-xs text-neutral-300">Achieved on {record.date}</p>
@@ -191,9 +194,17 @@ function ProgressCard({ title, value, change, timeframe }: {
       <CardContent>
         <div className="text-2xl font-bold">{value}</div>
         <div className="flex items-center mt-1">
-          <span className={`material-icons text-sm mr-1 ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
-            {isPositive ? 'trending_up' : 'trending_down'}
-          </span>
+          {isPositive ? (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-1">
+              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+              <polyline points="17 6 23 6 23 12"></polyline>
+            </svg>
+          ) : (
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500 mr-1">
+              <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+              <polyline points="17 18 23 18 23 12"></polyline>
+            </svg>
+          )}
           <span className={`text-sm ${isPositive ? 'text-green-500' : 'text-red-500'}`}>{change}</span>
           <span className="text-xs text-neutral-300 ml-2">{timeframe}</span>
         </div>

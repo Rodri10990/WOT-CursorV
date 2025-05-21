@@ -147,8 +147,11 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div className="text-xl font-bold">{weight} {weightUnit}</div>
               <div className="flex items-center text-green-500">
-                <span className="material-icons text-sm">arrow_downward</span>
-                <span className="text-xs">2.5 {weightUnit}</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+                <span className="text-xs ml-1">2.5 {weightUnit}</span>
               </div>
             </div>
             <p className="text-xs text-neutral-400 mt-1">Last 30 days</p>

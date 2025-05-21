@@ -169,7 +169,8 @@ export function RoutineDayDetail() {
               <span className="text-sm">{selectedDay.duration} minutes</span>
             </div>
             <Button className="bg-primary">
-              <span className="material-icons">play_arrow</span>
+              <span className="material-icons mr-1">play_arrow</span>
+              Start Workout
             </Button>
           </div>
           

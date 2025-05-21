@@ -95,7 +95,12 @@ export default function WorkoutPlanCard({ workoutPlan }: WorkoutPlanCardProps) {
         <ul className="space-y-2">
           {plan.exercises.map((exercise, index) => (
             <li className="flex items-start" key={index}>
-              <span className="material-icons text-primary mr-2 mt-0.5 text-sm">fitness_center</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2 mt-0.5">
+                <path d="M6 5v14"></path>
+                <path d="M18 5v14"></path>
+                <path d="M2 12h20"></path>
+                <path d="M9 12h6"></path>
+              </svg>
               <div>
                 <p className="font-medium text-sm">{exercise.name}</p>
                 <p className="text-xs text-neutral-400">{formatExercise(exercise)}</p>

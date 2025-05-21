@@ -53,7 +53,7 @@ export function RoutineOverview() {
             <ul className="space-y-1 mb-3">
               {routine.days.map((day, index) => (
                 <li key={day.id} className="flex items-center text-sm">
-                  <span className="material-icons text-primary mr-2 text-sm">event</span>
+                  <span className="material-icons text-primary mr-2">event</span>
                   <span>{day.name}</span>
                 </li>
               ))}
@@ -72,8 +72,7 @@ export function RoutineOverview() {
                 className="flex-1 text-xs py-1"
                 onClick={() => setSelectedRoutine(routine.id)}
               >
-                <span className="material-icons mr-1 text-sm">visibility</span>
-                View Days
+                <span className="material-icons">visibility</span>
               </Button>
             </div>
           </CardContent>
@@ -99,8 +98,7 @@ export function RoutineDaysView() {
           className="mr-2"
           onClick={() => setSelectedRoutine(null)}
         >
-          <span className="material-icons mr-1">arrow_back</span>
-          Back
+          <span className="material-icons">arrow_back</span>
         </Button>
         <h2 className="text-xl font-bold">{selectedRoutine.name}</h2>
       </div>
@@ -153,8 +151,7 @@ export function RoutineDayDetail() {
           className="mr-2"
           onClick={() => setSelectedDay(null)}
         >
-          <span className="material-icons mr-1">arrow_back</span>
-          Back
+          <span className="material-icons">arrow_back</span>
         </Button>
         <div>
           <h2 className="text-xl font-bold">{selectedDay.name}</h2>

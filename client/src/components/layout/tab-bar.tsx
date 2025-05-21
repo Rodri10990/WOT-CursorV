@@ -58,52 +58,47 @@ export default function TabBar() {
       >
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex items-center justify-center min-w-[20%] h-full ${
             isActive("/") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-lg">home</span>
-          <span className="text-xs mt-1">Home</span>
+          <span className="material-icons text-2xl">home</span>
         </Link>
         
         <Link
           href="/workouts"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex items-center justify-center min-w-[20%] h-full ${
             isActive("/workouts") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-lg">fitness_center</span>
-          <span className="text-xs mt-1">Workouts</span>
+          <span className="material-icons text-2xl">fitness_center</span>
         </Link>
         
         <Link
           href="/ai-trainer"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex items-center justify-center min-w-[20%] h-full ${
             isActive("/ai-trainer") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-lg">smart_toy</span>
-          <span className="text-xs mt-1">AI Trainer</span>
+          <span className="material-icons text-2xl">smart_toy</span>
         </Link>
         
         <Link
           href="/nutrition"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex items-center justify-center min-w-[20%] h-full ${
             isActive("/nutrition") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-lg">restaurant</span>
-          <span className="text-xs mt-1">Nutrition</span>
+          <span className="material-icons text-2xl">restaurant</span>
         </Link>
         
         <Link
           href="/settings"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex items-center justify-center min-w-[20%] h-full ${
             isActive("/settings") ? "text-primary" : "text-neutral-500"
           }`}
         >
-          <span className="material-icons text-lg">settings</span>
-          <span className="text-xs mt-1">Settings</span>
+          <span className="material-icons text-2xl">settings</span>
         </Link>
       </div>
     </div>

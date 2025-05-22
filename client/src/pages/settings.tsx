@@ -8,6 +8,7 @@ import { useUserStore } from "@/lib/userStore";
 import { useToast } from "@/hooks/use-toast";
 export default function Settings() {
   const [activeTab, setActiveTab] = useState("profile");
+  const [showPhotoOptions, setShowPhotoOptions] = useState(false);
   const { name, username, email, phone, avatarInitials, memberSince, setUser } = useUserStore();
   const { toast } = useToast();
   
@@ -17,6 +18,75 @@ export default function Settings() {
     email,
     phone
   });
+
+  const handlePhotoSelection = (useCamera: boolean) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+    input.multiple = false;
+    
+    if (useCamera) {
+      input.capture = 'environment';
+    }
+    
+    input.onchange = (e) => {
+      const file = (e.target as HTMLInputElement).files?.[0];
+      if (file) {
+        const imageUrl = URL.createObjectURL(file);
+        
+        if (file.size > 5 * 1024 * 1024) {
+          toast({
+            title: "File too large",
+            description: "Please select an image smaller than 5MB",
+            variant: "destructive"
+          });
+          URL.revokeObjectURL(imageUrl);
+          return;
+        }
+        
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: "Invalid file type",
+            description: "Please select a valid image file",
+            variant: "destructive"
+          });
+          URL.revokeObjectURL(imageUrl);
+          return;
+        }
+        
+        const img = new Image();
+        img.onload = () => {
+          toast({
+            title: "Photo updated successfully! 📸",
+            description: `${useCamera ? 'Camera photo' : 'Gallery photo'} selected: ${file.name}`
+          });
+          
+          console.log('Photo ready for upload:', {
+            name: file.name,
+            size: file.size,
+            type: file.type,
+            url: imageUrl
+          });
+          
+          setTimeout(() => URL.revokeObjectURL(imageUrl), 5000);
+        };
+        
+        img.onerror = () => {
+          toast({
+            title: "Error loading image",
+            description: "Please try selecting a different image",
+            variant: "destructive"
+          });
+          URL.revokeObjectURL(imageUrl);
+        };
+        
+        img.src = imageUrl;
+      }
+    };
+    
+    input.click();
+    setShowPhotoOptions(false);
+  };
   
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
@@ -94,90 +164,54 @@ export default function Settings() {
                 </div>
               </div>
               
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="w-full"
-                onClick={() => {
-                  const handlePhotoSelection = (useCamera: boolean) => {
-                    const input = document.createElement('input');
-                    input.type = 'file';
-                    input.accept = 'image/*';
-                    input.multiple = false;
-                    
-                    if (useCamera) {
-                      input.capture = 'environment'; // Camera mode
-                    }
-                    
-                    input.onchange = (e) => {
-                      const file = (e.target as HTMLInputElement).files?.[0];
-                      if (file) {
-                        const imageUrl = URL.createObjectURL(file);
-                        
-                        if (file.size > 5 * 1024 * 1024) {
-                          toast({
-                            title: "File too large",
-                            description: "Please select an image smaller than 5MB",
-                            variant: "destructive"
-                          });
-                          URL.revokeObjectURL(imageUrl);
-                          return;
-                        }
-                        
-                        if (!file.type.startsWith('image/')) {
-                          toast({
-                            title: "Invalid file type",
-                            description: "Please select a valid image file",
-                            variant: "destructive"
-                          });
-                          URL.revokeObjectURL(imageUrl);
-                          return;
-                        }
-                        
-                        const img = new Image();
-                        img.onload = () => {
-                          toast({
-                            title: "Photo updated successfully! 📸",
-                            description: `${useCamera ? 'Camera photo' : 'Gallery photo'} selected: ${file.name}`
-                          });
-                          
-                          console.log('Photo ready for upload:', {
-                            name: file.name,
-                            size: file.size,
-                            type: file.type,
-                            url: imageUrl
-                          });
-                          
-                          setTimeout(() => URL.revokeObjectURL(imageUrl), 5000);
-                        };
-                        
-                        img.onerror = () => {
-                          toast({
-                            title: "Error loading image",
-                            description: "Please try selecting a different image",
-                            variant: "destructive"
-                          });
-                          URL.revokeObjectURL(imageUrl);
-                        };
-                        
-                        img.src = imageUrl;
-                      }
-                    };
-                    
-                    input.click();
-                  };
-
-                  // Create a simple choice dialog with clear "Camera" and "Gallery" labels
-                  const userChoice = window.confirm("📸 Choose Photo Source:\n\n✅ Camera - Take new photo\n❌ Gallery - Select existing photo\n\nClick OK for Camera, Cancel for Gallery");
-                  handlePhotoSelection(userChoice);
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
-                  <circle cx="12" cy="13" r="4"></circle>
-                </svg>
-                Change Photo
-              </Button>
+              {!showPhotoOptions ? (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="w-full"
+                  onClick={() => setShowPhotoOptions(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                    <circle cx="12" cy="13" r="4"></circle>
+                  </svg>
+                  Change Photo
+                </Button>
+              ) : (
+                <div className="space-y-2">
+                  <Button 
+                    variant="default" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handlePhotoSelection(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                      <circle cx="12" cy="13" r="4"></circle>
+                    </svg>
+                    Take a new Photo
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => handlePhotoSelection(false)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 2h12a2 2 0 012 2v16a2 2 0 01-2 2H6a2 2 0 01-2-2V4a2 2 0 012-2z"></path>
+                    </svg>
+                    Choose from Gallery
+                  </Button>
+                  <Button 
+                    variant="secondary" 
+                    size="sm" 
+                    className="w-full"
+                    onClick={() => setShowPhotoOptions(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
           

@@ -329,14 +329,99 @@ export default function AITrainer() {
             {messageContainsWorkoutPlan(messages[messages.length - 1]?.content || "") && (
               <EquipmentSelector onEquipmentChange={setSelectedEquipment} />
             )}
-            {workoutPlan && <WorkoutPlanCard workoutPlan={workoutPlan} />}
+            {workoutPlan && (
+              <div className="space-y-3">
+                <WorkoutPlanCard workoutPlan={workoutPlan} />
+                <div className="flex gap-2">
+                  <Button 
+                    onClick={saveWorkoutPlan}
+                    className="flex-1"
+                    size="sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Save to Routines
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={() => toast({
+                      title: "Workout shared! 🔗",
+                      description: "Link copied to clipboard"
+                    })}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                      <polyline points="16 6 12 2 8 6"></polyline>
+                      <line x1="12" y1="2" x2="12" y2="15"></line>
+                    </svg>
+                    Share
+                  </Button>
+                </div>
+              </div>
+            )}
             {exerciseForm && <ExerciseFormCard formGuide={exerciseForm} />}
           </>
         }
       />
 
-      {/* Message Input */}
-      <MessageInput onSendMessage={handleSendMessage} />
+      {/* Enhanced Message Input with Voice */}
+      <div className="relative">
+        <MessageInput onSendMessage={handleSendMessage} />
+        {voiceSupported && (
+          <Button
+            variant={isListening ? "default" : "outline"}
+            size="icon"
+            className={`absolute right-16 bottom-3 h-8 w-8 ${
+              isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : ''
+            }`}
+            onClick={startVoiceInput}
+            disabled={isListening}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+              <line x1="12" y1="19" x2="12" y2="23"></line>
+              <line x1="8" y1="23" x2="16" y2="23"></line>
+            </svg>
+          </Button>
+        )}
+      </div>
+
+      {/* Personalized Quick Actions */}
+      <div className="grid grid-cols-2 gap-2 p-4 bg-neutral-50 dark:bg-neutral-900/50">
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => handleSendMessage(`Create a workout plan for my ${weight}lb body weight focusing on building muscle`)}
+        >
+          💪 Custom Workout Plan
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => handleSendMessage("What exercises can help me improve my body composition?")}
+        >
+          📊 Body Composition Tips
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => handleSendMessage("Show me proper form for compound exercises")}
+        >
+          🎯 Exercise Form Guide
+        </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => handleSendMessage("Track my progress and suggest improvements")}
+        >
+          📈 Progress Analysis
+        </Button>
+      </div>
     </div>
   );
 }

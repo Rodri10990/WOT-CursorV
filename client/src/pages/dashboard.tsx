@@ -73,7 +73,12 @@ export default function Dashboard() {
       {/* Today's Workout */}
       <div className="flex justify-between items-center mb-3">
         <h2 className="text-lg font-semibold">Today's Workout</h2>
-        <Button variant="outline" size="sm" className="h-8 text-xs px-2">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="h-8 text-xs px-2"
+          onClick={() => window.location.href = "/workouts"}
+        >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
             <line x1="12" y1="5" x2="12" y2="19"></line>
             <line x1="5" y1="12" x2="19" y2="12"></line>

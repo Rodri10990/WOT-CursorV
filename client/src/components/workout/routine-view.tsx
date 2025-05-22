@@ -11,7 +11,12 @@ export function RoutineOverview() {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <p className="text-neutral-500 mb-4">No workout routines found</p>
-        <Button className="bg-primary">Create Routine</Button>
+        <Button 
+          className="bg-primary"
+          onClick={() => window.location.href = "/ai-trainer"}
+        >
+          Create Routine
+        </Button>
       </div>
     );
   }
@@ -34,9 +39,15 @@ export function RoutineOverview() {
                       toggleFavorite(routine.id);
                     }}
                   >
-                    <span className="material-icons text-lg text-yellow-500">
-                      {routine.favorite ? 'star' : 'star_border'}
-                    </span>
+                    {routine.favorite ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                      </svg>
+                    )}
                   </Button>
                 </div>
                 <p className="text-xs text-neutral-500 mt-1">{routine.description}</p>

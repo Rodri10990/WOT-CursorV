@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/openai";
+import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/gemini";
 import { MessageEntry } from "@shared/schema";
 
 const messageRequestSchema = z.object({
@@ -95,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Goals and time constraint are required" });
       }
       
-      const workoutPlan = await generateWorkoutPlan(goals, timeConstraint, equipment);
+      const workoutPlan = await generateWorkoutPlan(goals, timeConstraint);
       return res.json(workoutPlan);
     } catch (error) {
       console.error("Error generating workout:", error);

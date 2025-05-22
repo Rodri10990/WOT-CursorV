@@ -62,25 +62,29 @@ export const useRoutineStore = create<RoutineState>()((set, get) => ({
               name: 'Push-ups',
               sets: 3,
               reps: 12,
-              rest: 60
+              rest: 60,
+              notes: 'Keep core tight and body in straight line'
             },
             {
               name: 'Overhead Press',
               sets: 3,
               reps: 10,
-              rest: 90
+              rest: 90,
+              notes: 'Press straight up, engage core for stability'
             },
             {
               name: 'Tricep Dips',
               sets: 3,
               reps: 12,
-              rest: 60
+              rest: 60,
+              notes: 'Lower slowly, keep body close to bench'
             },
             {
               name: 'Lateral Raises',
               sets: 3,
               reps: 15,
-              rest: 60
+              rest: 60,
+              notes: 'Slight bend in elbows, control the weight down'
             }
           ],
           duration: 55
@@ -95,31 +99,35 @@ export const useRoutineStore = create<RoutineState>()((set, get) => ({
               sets: 3,
               reps: 8,
               rest: 90,
-              notes: 'Use assistance if needed'
+              notes: 'Pull chest to bar, control the descent'
             },
             {
               name: 'Bent-over Rows',
               sets: 3,
               reps: 10,
-              rest: 90
+              rest: 90,
+              notes: 'Keep back straight, pull to lower chest'
             },
             {
               name: 'Lat Pulldowns',
               sets: 3,
               reps: 12,
-              rest: 60
+              rest: 60,
+              notes: 'Pull to upper chest, squeeze shoulder blades'
             },
             {
               name: 'Bicep Curls',
               sets: 3,
               reps: 12,
-              rest: 60
+              rest: 60,
+              notes: 'Keep elbows stationary, full range of motion'
             },
             {
               name: 'Face Pulls',
               sets: 3,
               reps: 15,
-              rest: 60
+              rest: 60,
+              notes: 'Pull to face level, squeeze rear delts'
             }
           ],
           duration: 58
@@ -147,25 +155,29 @@ export const useRoutineStore = create<RoutineState>()((set, get) => ({
               name: 'Lunges',
               sets: 3,
               reps: 12,
-              rest: 60
+              rest: 60,
+              notes: 'Step forward, keep front knee over ankle'
             },
             {
               name: 'Leg Press',
               sets: 3,
               reps: 12,
-              rest: 90
+              rest: 90,
+              notes: 'Lower to 90 degrees, push through heels'
             },
             {
               name: 'Planks',
               sets: 3,
               duration: 30,
-              rest: 45
+              rest: 45,
+              notes: 'Keep body straight, engage core muscles'
             },
             {
               name: 'Russian Twists',
               sets: 3,
               reps: 20,
-              rest: 45
+              rest: 45,
+              notes: 'Lean back, twist side to side, keep feet up'
             }
           ],
           duration: 65

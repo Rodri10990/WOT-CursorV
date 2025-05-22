@@ -46,7 +46,7 @@ export default function TabBar() {
         }
       }
     }
-  }, [isActive]);
+  }, []);
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white dark:bg-neutral-900 border-t border-neutral-200 dark:border-neutral-800 z-50">
@@ -58,7 +58,7 @@ export default function TabBar() {
       >
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex flex-col items-center justify-center min-w-[25%] h-full ${
             isActive("/") ? "text-primary" : "text-neutral-500"
           }`}
         >
@@ -74,7 +74,7 @@ export default function TabBar() {
         
         <Link
           href="/workouts"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex flex-col items-center justify-center min-w-[25%] h-full ${
             isActive("/workouts") ? "text-primary" : "text-neutral-500"
           }`}
         >
@@ -92,7 +92,7 @@ export default function TabBar() {
         
         <Link
           href="/ai-trainer"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex flex-col items-center justify-center min-w-[25%] h-full ${
             isActive("/ai-trainer") ? "text-primary" : "text-neutral-500"
           }`}
         >
@@ -111,7 +111,7 @@ export default function TabBar() {
         
         <Link
           href="/nutrition"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
+          className={`flex flex-col items-center justify-center min-w-[25%] h-full ${
             isActive("/nutrition") ? "text-primary" : "text-neutral-500"
           }`}
         >
@@ -128,21 +128,7 @@ export default function TabBar() {
           <span className="text-xs mt-1">Nutrition</span>
         </Link>
         
-        <Link
-          href="/settings"
-          className={`flex flex-col items-center justify-center min-w-[20%] h-full ${
-            isActive("/settings") ? "text-primary" : "text-neutral-500"
-          }`}
-        >
-          {/* Settings icon */}
-          <div className="w-5 h-5 flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-            </svg>
-          </div>
-          <span className="text-xs mt-1">Settings</span>
-        </Link>
+
       </div>
     </div>
   );

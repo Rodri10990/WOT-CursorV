@@ -13,6 +13,7 @@ import Settings from "@/pages/settings";
 import RoutineDetail from "@/pages/routine-detail";
 import DayDetail from "@/pages/day-detail";
 import TabBar from "@/components/layout/tab-bar";
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
 
 function Router() {
   return (
@@ -42,6 +43,7 @@ function App() {
             <Router />
           </main>
           <TabBar />
+          <PWAInstallPrompt />
         </div>
       </TooltipProvider>
     </QueryClientProvider>

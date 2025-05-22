@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/cursor-ai";
+import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/openai";
 import { MessageEntry } from "@shared/schema";
 
 const messageRequestSchema = z.object({
@@ -23,7 +23,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // If no conversation exists, create a new one with default welcome message
         const welcomeMessage: MessageEntry = {
           role: "assistant",
-          content: "Hello! I'm your AI workout assistant. I can help you create personalized workout plans, provide exercise form guidance, and track your progress. What would you like to do today?",
+          content: "Hey! Good to see you here. What's going on today?",
           timestamp: new Date().toISOString(),
         };
         

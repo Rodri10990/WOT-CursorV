@@ -76,7 +76,14 @@ function getMockResponse(lastMessage: MessageEntry): MessageEntry {
       "Your consistency has been excellent at 82% (14 out of 17 planned sessions completed). Keep up the great work!";
   } 
   else if (userMessage.includes("hello") || userMessage.includes("hi") || userMessage.includes("hey")) {
-    responseContent = "Hello! I'm your AI workout assistant. I can help you create personalized workout plans, provide exercise form guidance, and track your progress. What would you like help with today?";
+    const greetings = [
+      "Hey there! How's your day going?",
+      "Hi! What's up?",
+      "Hello! How are you feeling today?",
+      "Hey! Ready to chat about fitness or just want to say hi?",
+      "Hi there! What's on your mind?"
+    ];
+    responseContent = greetings[Math.floor(Math.random() * greetings.length)];
   } 
   else {
     // Give more natural, conversational responses based on the input
@@ -96,7 +103,15 @@ function getMockResponse(lastMessage: MessageEntry): MessageEntry {
       responseContent = "I totally understand being busy! Even 15-20 minute workouts can be effective when done consistently. What's your typical schedule like?";
     }
     else {
-      responseContent = "That's a great question! I'm here to chat about anything fitness-related. What's on your mind today?";
+      const casualResponses = [
+        "That's interesting! Tell me more about that.",
+        "I'm listening! What else is going on?",
+        "Hmm, that's a good point. What made you think about that?",
+        "Cool! I'm here if you want to chat about anything.",
+        "Right on! What's got you curious about that?",
+        "Nice! Feel free to share whatever's on your mind."
+      ];
+      responseContent = casualResponses[Math.floor(Math.random() * casualResponses.length)];
     }
   }
   

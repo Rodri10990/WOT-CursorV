@@ -1,13 +1,59 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useRoute, Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
 import { useRoutineStore } from "@/lib/workoutRoutineStore";
+
+interface ExerciseProgress {
+  [exerciseIndex: number]: {
+    [setIndex: number]: {
+      reps: number;
+      weight: number;
+    };
+  };
+}
 
 export default function DayDetail() {
   const [, params] = useRoute("/routine/:routineId/day/:dayId");
   const [, setLocation] = useLocation();
   const { routines, selectedRoutine, setSelectedRoutine, selectedDay, setSelectedDay } = useRoutineStore();
+  const [exerciseProgress, setExerciseProgress] = useState<ExerciseProgress>({});
+
+  const updateProgress = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: number) => {
+    setExerciseProgress(prev => ({
+      ...prev,
+      [exerciseIndex]: {
+        ...prev[exerciseIndex],
+        [setIndex]: {
+          ...prev[exerciseIndex]?.[setIndex],
+          [field]: value
+        }
+      }
+    }));
+  };
+
+  const getExerciseImage = (exerciseName: string) => {
+    // Placeholder for exercise demonstration images/videos
+    const exerciseImages = {
+      'Bench Press': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Bench+Press+Demo',
+      'Push-ups': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Push-ups+Demo',
+      'Overhead Press': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Overhead+Press+Demo',
+      'Tricep Dips': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Tricep+Dips+Demo',
+      'Lateral Raises': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Lateral+Raises+Demo',
+      'Pull-ups': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Pull-ups+Demo',
+      'Bent-over Rows': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Bent-over+Rows+Demo',
+      'Bicep Curls': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Bicep+Curls+Demo',
+      'Lat Pulldowns': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Lat+Pulldowns+Demo',
+      'Cable Rows': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Cable+Rows+Demo',
+      'Squats': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Squats+Demo',
+      'Deadlifts': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Deadlifts+Demo',
+      'Leg Press': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Leg+Press+Demo',
+      'Leg Curls': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Leg+Curls+Demo',
+      'Calf Raises': 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Calf+Raises+Demo'
+    };
+    return exerciseImages[exerciseName as keyof typeof exerciseImages] || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Exercise+Demo';
+  };
   
   useEffect(() => {
     if (params?.routineId) {
@@ -80,39 +126,98 @@ export default function DayDetail() {
       
       <h2 className="text-lg font-semibold mb-3">Exercises</h2>
       
-      <div className="space-y-3">
-        {selectedDay.exercises.map((exercise, index) => (
-          <Card key={index} className="bg-white dark:bg-neutral-800">
-            <CardContent className="p-3">
-              <div className="flex justify-between items-center mb-2">
-                <h3 className="text-base font-medium">{exercise.name}</h3>
+      <div className="space-y-6">
+        {selectedDay.exercises.map((exercise, exerciseIndex) => (
+          <Card key={exerciseIndex} className="bg-white dark:bg-neutral-800">
+            <CardContent className="p-4">
+              {/* Exercise Name */}
+              <h3 className="text-xl font-bold mb-3">{exercise.name}</h3>
+              
+              {/* Exercise Demo Image/Video */}
+              <div className="mb-4">
+                <img 
+                  src={getExerciseImage(exercise.name)} 
+                  alt={`${exercise.name} demonstration`}
+                  className="w-full h-48 object-cover rounded-lg border border-neutral-200"
+                />
               </div>
               
-              <div className="flex flex-wrap gap-2 text-xs">
+              {/* Exercise Parameters */}
+              <div className="flex flex-wrap gap-3 mb-4 p-3 bg-neutral-50 rounded-lg">
                 {exercise.sets && exercise.reps && (
-                  <div className="bg-neutral-100 dark:bg-neutral-700 rounded py-1 px-2">
-                    {exercise.sets} × {exercise.reps}
-                  </div>
-                )}
-                
-                {exercise.duration && (
-                  <div className="bg-neutral-100 dark:bg-neutral-700 rounded py-1 px-2">
-                    {exercise.duration} sec
+                  <div className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-1">
+                      <path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14"></path>
+                      <path d="M2 20h20"></path>
+                      <path d="M14 12V8"></path>
+                    </svg>
+                    <span className="font-medium text-sm">{exercise.sets} sets × {exercise.reps} reps</span>
                   </div>
                 )}
                 
                 {exercise.rest && (
-                  <div className="bg-neutral-100 dark:bg-neutral-700 rounded py-1 px-2">
-                    Rest: {exercise.rest} sec
+                  <div className="flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500 mr-1">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span className="text-sm text-neutral-600">Rest: {exercise.rest}s</span>
                   </div>
                 )}
               </div>
-              
+
+              {/* Exercise Notes */}
               {exercise.notes && (
-                <p className="text-xs text-neutral-500 mt-2 italic">
-                  {exercise.notes}
-                </p>
+                <div className="mb-4 p-2 bg-blue-50 border-l-4 border-blue-400 rounded">
+                  <p className="text-sm text-blue-800 italic">💡 {exercise.notes}</p>
+                </div>
               )}
+              
+              {/* Progress Tracking Table */}
+              <div className="mt-4">
+                <h4 className="font-medium mb-2">Track Your Progress</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full border border-neutral-200 rounded-lg">
+                    <thead className="bg-neutral-100">
+                      <tr>
+                        <th className="px-3 py-2 text-left text-sm font-medium">Set</th>
+                        <th className="px-3 py-2 text-center text-sm font-medium">Target Reps</th>
+                        <th className="px-3 py-2 text-center text-sm font-medium">Actual Reps</th>
+                        <th className="px-3 py-2 text-center text-sm font-medium">Weight (kg)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Array.from({ length: exercise.sets || 1 }, (_, setIndex) => (
+                        <tr key={setIndex} className="border-t border-neutral-200">
+                          <td className="px-3 py-2 font-medium">Set {setIndex + 1}</td>
+                          <td className="px-3 py-2 text-center">{exercise.reps}</td>
+                          <td className="px-3 py-2">
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              min="0"
+                              className="w-16 h-8 text-center mx-auto"
+                              value={exerciseProgress[exerciseIndex]?.[setIndex]?.reps || ''}
+                              onChange={(e) => updateProgress(exerciseIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
+                            />
+                          </td>
+                          <td className="px-3 py-2">
+                            <Input
+                              type="number"
+                              placeholder="0"
+                              min="0"
+                              step="0.5"
+                              className="w-20 h-8 text-center mx-auto"
+                              value={exerciseProgress[exerciseIndex]?.[setIndex]?.weight || ''}
+                              onChange={(e) => updateProgress(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}

@@ -228,55 +228,55 @@ export default function DayDetail() {
               {/* Progress Tracking Table */}
               <div className="mt-4">
                 <h4 className="font-medium mb-2">Track Your Progress</h4>
-                <div className="overflow-x-auto">
-                  <table className="w-full border border-neutral-200 rounded-lg">
+                <div className="w-full">
+                  <table className="w-full border border-neutral-200 rounded-lg text-xs">
                     <thead className="bg-neutral-100">
                       <tr>
-                        <th className="px-3 py-2 text-left text-sm font-medium">Set</th>
-                        <th className="px-3 py-2 text-center text-sm font-medium">Target Reps</th>
-                        <th className="px-3 py-2 text-center text-sm font-medium">Actual Reps</th>
-                        <th className="px-3 py-2 text-center text-sm font-medium">Weight (kg)</th>
-                        <th className="px-3 py-2 text-center text-sm font-medium">Rest Timer</th>
+                        <th className="px-1 py-2 text-left text-xs font-medium w-12">Set</th>
+                        <th className="px-1 py-2 text-center text-xs font-medium w-12">Target</th>
+                        <th className="px-1 py-2 text-center text-xs font-medium w-16">Reps</th>
+                        <th className="px-1 py-2 text-center text-xs font-medium w-16">Kg</th>
+                        <th className="px-1 py-2 text-center text-xs font-medium">Timer</th>
                       </tr>
                     </thead>
                     <tbody>
                       {Array.from({ length: exercise.sets || 1 }, (_, setIndex) => (
                         <tr key={setIndex} className="border-t border-neutral-200">
-                          <td className="px-3 py-2 font-medium">Set {setIndex + 1}</td>
-                          <td className="px-3 py-2 text-center">{exercise.reps}</td>
-                          <td className="px-3 py-2">
+                          <td className="px-1 py-2 font-medium text-xs">{setIndex + 1}</td>
+                          <td className="px-1 py-2 text-center text-xs">{exercise.reps}</td>
+                          <td className="px-1 py-2">
                             <Input
                               type="number"
                               placeholder="0"
                               min="0"
-                              className="w-16 h-8 text-center mx-auto"
+                              className="w-12 h-7 text-center mx-auto text-xs"
                               value={exerciseProgress[exerciseIndex]?.[setIndex]?.reps || ''}
                               onChange={(e) => updateProgress(exerciseIndex, setIndex, 'reps', parseInt(e.target.value) || 0)}
                             />
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-1 py-2">
                             <Input
                               type="number"
                               placeholder="0"
                               min="0"
                               step="0.5"
-                              className="w-20 h-8 text-center mx-auto"
+                              className="w-14 h-7 text-center mx-auto text-xs"
                               value={exerciseProgress[exerciseIndex]?.[setIndex]?.weight || ''}
                               onChange={(e) => updateProgress(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
                             />
                           </td>
-                          <td className="px-3 py-2">
+                          <td className="px-1 py-2">
                             {restTimer && 
                              restTimer.exerciseIndex === exerciseIndex && 
                              restTimer.setIndex === setIndex ? (
                               <div className="flex flex-col items-center">
-                                <div className="text-lg font-bold text-primary mb-1">
+                                <div className="text-sm font-bold text-primary mb-1">
                                   {formatTime(restTimer.timeRemaining)}
                                 </div>
                                 <Button
                                   size="sm"
                                   variant="outline"
-                                  className="h-6 text-xs"
+                                  className="h-5 text-xs px-2"
                                   onClick={stopRestTimer}
                                 >
                                   Stop
@@ -285,11 +285,11 @@ export default function DayDetail() {
                             ) : (
                               <Button
                                 size="sm"
-                                className="h-8 text-xs bg-green-600 hover:bg-green-700"
+                                className="h-7 text-xs bg-green-600 hover:bg-green-700 px-2"
                                 onClick={() => startRestTimer(exerciseIndex, setIndex, exercise.rest || 60)}
                                 disabled={!exerciseProgress[exerciseIndex]?.[setIndex]?.reps}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                                   <circle cx="12" cy="12" r="10"></circle>
                                   <polyline points="12 6 12 12 16 14"></polyline>
                                 </svg>

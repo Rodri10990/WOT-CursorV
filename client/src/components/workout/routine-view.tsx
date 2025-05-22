@@ -61,19 +61,31 @@ export function RoutineOverview() {
               </Badge>
             </div>
             
-            <ul className="space-y-1 mb-3">
+            <div className="space-y-2 mb-3">
               {routine.days.map((day, index) => (
-                <li key={day.id} className="flex items-center text-sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2">
-                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                    <line x1="16" y1="2" x2="16" y2="6"></line>
-                    <line x1="8" y1="2" x2="8" y2="6"></line>
-                    <line x1="3" y1="10" x2="21" y2="10"></line>
+                <div
+                  key={day.id}
+                  className="flex items-center justify-between p-2 rounded-lg border border-neutral-200 hover:border-primary hover:bg-neutral-50 cursor-pointer transition-colors"
+                  onClick={() => window.location.href = `/routine/${routine.id}/day/${day.id}`}
+                >
+                  <div className="flex items-center text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary mr-2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                    <div>
+                      <div className="font-medium">{day.name}</div>
+                      <div className="text-xs text-neutral-500">{day.exercises.length} exercises • {day.duration} min</div>
+                    </div>
+                  </div>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-400">
+                    <path d="M9 18l6-6-6-6"></path>
                   </svg>
-                  <span>{day.name}</span>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
             
             {routine.lastPerformedDay && routine.lastPerformedDate && (
               <div className="text-xs text-neutral-500 mb-3">

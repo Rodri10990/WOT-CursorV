@@ -86,12 +86,13 @@ export function RoutineOverview() {
                 variant="outline" 
                 size="sm" 
                 className="flex-1 text-xs py-1"
-                onClick={() => setSelectedRoutine(routine.id)}
+                onClick={() => window.location.href = `/routine/${routine.id}`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                   <circle cx="12" cy="12" r="3"></circle>
                 </svg>
+                View
               </Button>
             </div>
           </CardContent>

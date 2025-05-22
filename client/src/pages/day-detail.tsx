@@ -68,6 +68,11 @@ export default function DayDetail() {
         <Button
           className="bg-primary hover:bg-primary/90 text-white"
           size="sm"
+          onClick={() => {
+            // Start the workout session
+            const startTime = new Date().toLocaleTimeString();
+            alert(`🏋️ Workout Started at ${startTime}!\n\nYour ${selectedDay.name} workout is now active.\nEstimated duration: ${selectedDay.duration} minutes\n\nGood luck and stay focused!`);
+          }}
         >
           Start Workout
         </Button>

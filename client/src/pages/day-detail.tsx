@@ -14,11 +14,19 @@ interface ExerciseProgress {
   };
 }
 
+interface RestTimer {
+  exerciseIndex: number;
+  setIndex: number;
+  timeRemaining: number;
+  isActive: boolean;
+}
+
 export default function DayDetail() {
   const [, params] = useRoute("/routine/:routineId/day/:dayId");
   const [, setLocation] = useLocation();
   const { routines, selectedRoutine, setSelectedRoutine, selectedDay, setSelectedDay } = useRoutineStore();
   const [exerciseProgress, setExerciseProgress] = useState<ExerciseProgress>({});
+  const [restTimer, setRestTimer] = useState<RestTimer | null>(null);
 
   const updateProgress = (exerciseIndex: number, setIndex: number, field: 'reps' | 'weight', value: number) => {
     setExerciseProgress(prev => ({
@@ -31,6 +39,25 @@ export default function DayDetail() {
         }
       }
     }));
+  };
+
+  const startRestTimer = (exerciseIndex: number, setIndex: number, restTime: number) => {
+    setRestTimer({
+      exerciseIndex,
+      setIndex,
+      timeRemaining: restTime,
+      isActive: true
+    });
+  };
+
+  const stopRestTimer = () => {
+    setRestTimer(null);
+  };
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
   const getExerciseImage = (exerciseName: string) => {
@@ -54,6 +81,31 @@ export default function DayDetail() {
     };
     return exerciseImages[exerciseName as keyof typeof exerciseImages] || 'https://via.placeholder.com/300x200/4F46E5/FFFFFF?text=Exercise+Demo';
   };
+  
+  // Timer countdown effect
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    
+    if (restTimer && restTimer.isActive && restTimer.timeRemaining > 0) {
+      interval = setInterval(() => {
+        setRestTimer(prev => {
+          if (!prev || prev.timeRemaining <= 1) {
+            // Timer finished
+            alert("🔔 Rest time complete! Ready for your next set!");
+            return null;
+          }
+          return {
+            ...prev,
+            timeRemaining: prev.timeRemaining - 1
+          };
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [restTimer]);
   
   useEffect(() => {
     if (params?.routineId) {
@@ -184,6 +236,7 @@ export default function DayDetail() {
                         <th className="px-3 py-2 text-center text-sm font-medium">Target Reps</th>
                         <th className="px-3 py-2 text-center text-sm font-medium">Actual Reps</th>
                         <th className="px-3 py-2 text-center text-sm font-medium">Weight (kg)</th>
+                        <th className="px-3 py-2 text-center text-sm font-medium">Rest Timer</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -211,6 +264,38 @@ export default function DayDetail() {
                               value={exerciseProgress[exerciseIndex]?.[setIndex]?.weight || ''}
                               onChange={(e) => updateProgress(exerciseIndex, setIndex, 'weight', parseFloat(e.target.value) || 0)}
                             />
+                          </td>
+                          <td className="px-3 py-2">
+                            {restTimer && 
+                             restTimer.exerciseIndex === exerciseIndex && 
+                             restTimer.setIndex === setIndex ? (
+                              <div className="flex flex-col items-center">
+                                <div className="text-lg font-bold text-primary mb-1">
+                                  {formatTime(restTimer.timeRemaining)}
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 text-xs"
+                                  onClick={stopRestTimer}
+                                >
+                                  Stop
+                                </Button>
+                              </div>
+                            ) : (
+                              <Button
+                                size="sm"
+                                className="h-8 text-xs bg-green-600 hover:bg-green-700"
+                                onClick={() => startRestTimer(exerciseIndex, setIndex, exercise.rest || 60)}
+                                disabled={!exerciseProgress[exerciseIndex]?.[setIndex]?.reps}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                                Rest
+                              </Button>
+                            )}
                           </td>
                         </tr>
                       ))}

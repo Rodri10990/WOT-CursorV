@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import ChatInterface from "@/components/workout/chat-interface";
 import MessageInput from "@/components/workout/message-input";
 import WorkoutPlanCard from "@/components/workout/workout-plan-card";
@@ -9,6 +9,9 @@ import { apiRequest } from "@/lib/queryClient";
 import { MessageEntry } from "@shared/schema";
 import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { useRoutineStore } from "@/lib/workoutRoutineStore";
+import { useUserStore } from "@/lib/userStore";
 
 interface ConversationResponse {
   id: number;
@@ -44,7 +47,12 @@ export default function AITrainer() {
   const [isTyping, setIsTyping] = useState(false);
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
   const [exerciseForm, setExerciseForm] = useState<ExerciseFormGuide | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
   const { toast } = useToast();
+  const { addRoutine } = useRoutineStore();
+  const { name, weight, bodyFat } = useUserStore();
 
   // Fetch existing conversation or start a new one
   const { data: conversationData, isLoading } = useQuery<ConversationResponse>({
@@ -53,6 +61,77 @@ export default function AITrainer() {
 
   // State for selected equipment
   const [selectedEquipment, setSelectedEquipment] = useState<string[]>(["none"]);
+
+  // Initialize voice recognition
+  useEffect(() => {
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      setVoiceSupported(true);
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      recognitionRef.current = new SpeechRecognition();
+      recognitionRef.current.continuous = false;
+      recognitionRef.current.interimResults = false;
+      recognitionRef.current.lang = 'en-US';
+      
+      recognitionRef.current.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        setIsListening(false);
+        handleSendMessage(transcript);
+      };
+      
+      recognitionRef.current.onerror = () => {
+        setIsListening(false);
+        toast({
+          title: "Voice recognition error",
+          description: "Please try again or type your message",
+          variant: "destructive"
+        });
+      };
+      
+      recognitionRef.current.onend = () => {
+        setIsListening(false);
+      };
+    }
+  }, []);
+
+  const startVoiceInput = () => {
+    if (recognitionRef.current && voiceSupported) {
+      setIsListening(true);
+      recognitionRef.current.start();
+      toast({
+        title: "🎤 Listening...",
+        description: "Speak your question to your AI trainer"
+      });
+    }
+  };
+
+  const saveWorkoutPlan = () => {
+    if (workoutPlan) {
+      const newRoutine = {
+        name: workoutPlan.name,
+        description: workoutPlan.description,
+        days: [{
+          id: 'day1',
+          name: 'AI Generated Workout',
+          description: workoutPlan.description,
+          exercises: workoutPlan.exercises.map(ex => ({
+            name: ex.name,
+            sets: ex.sets || 3,
+            reps: ex.reps || 10,
+            duration: ex.duration,
+            notes: ex.notes || ''
+          })),
+          duration: workoutPlan.duration
+        }],
+        favorite: false
+      };
+      
+      addRoutine(newRoutine);
+      toast({
+        title: "Workout saved! 💪",
+        description: "Added to your routine library"
+      });
+    }
+  };
   
   // Generate workout plan mutation
   const generateWorkoutMutation = useMutation({

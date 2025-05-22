@@ -37,6 +37,7 @@ interface RoutineState {
   setSelectedRoutine: (routineId: string | null) => void;
   setSelectedDay: (dayId: string | null) => void;
   toggleFavorite: (routineId: string) => void;
+  addRoutine: (routine: Omit<Routine, 'id' | 'createdAt' | 'updatedAt'>) => void;
 }
 
 export const useRoutineStore = create<RoutineState>()((set, get) => ({
@@ -222,6 +223,19 @@ export const useRoutineStore = create<RoutineState>()((set, get) => ({
           ? { ...routine, favorite: !routine.favorite } 
           : routine
       )
+    }));
+  },
+
+  addRoutine: (routine) => {
+    const newRoutine: Routine = {
+      ...routine,
+      id: `routine_${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+    
+    set(state => ({
+      routines: [...state.routines, newRoutine]
     }));
   }
 }));

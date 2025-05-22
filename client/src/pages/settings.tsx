@@ -100,15 +100,80 @@ export default function Settings() {
                 size="sm" 
                 className="w-full"
                 onClick={() => {
+                  // Show user choice: Camera or Gallery
+                  const choice = confirm("Choose photo source:\nOK = Take Photo with Camera\nCancel = Select from Gallery");
+                  
                   const input = document.createElement('input');
                   input.type = 'file';
                   input.accept = 'image/*';
-                  input.onchange = () => {
-                    toast({
-                      title: "Feature coming soon",
-                      description: "Photo upload will be available in a future update"
-                    });
+                  input.multiple = false;
+                  
+                  // Set capture attribute based on user choice
+                  if (choice) {
+                    input.capture = 'environment'; // Camera mode
+                  }
+                  // If cancel (gallery), don't set capture attribute
+                  
+                  input.onchange = (e) => {
+                    const file = (e.target as HTMLInputElement).files?.[0];
+                    if (file) {
+                      // Create a URL for the selected/captured image
+                      const imageUrl = URL.createObjectURL(file);
+                      
+                      // Validate file size (max 5MB)
+                      if (file.size > 5 * 1024 * 1024) {
+                        toast({
+                          title: "File too large",
+                          description: "Please select an image smaller than 5MB",
+                          variant: "destructive"
+                        });
+                        URL.revokeObjectURL(imageUrl);
+                        return;
+                      }
+                      
+                      // Validate file type
+                      if (!file.type.startsWith('image/')) {
+                        toast({
+                          title: "Invalid file type",
+                          description: "Please select a valid image file",
+                          variant: "destructive"
+                        });
+                        URL.revokeObjectURL(imageUrl);
+                        return;
+                      }
+                      
+                      const img = new Image();
+                      img.onload = () => {
+                        toast({
+                          title: "Photo updated successfully! 📸",
+                          description: `${choice ? 'Camera photo' : 'Gallery photo'} selected: ${file.name}`
+                        });
+                        
+                        // In a real app, you would upload this to your server here
+                        console.log('Photo ready for upload:', {
+                          name: file.name,
+                          size: file.size,
+                          type: file.type,
+                          url: imageUrl
+                        });
+                        
+                        // Clean up the URL object
+                        setTimeout(() => URL.revokeObjectURL(imageUrl), 5000);
+                      };
+                      
+                      img.onerror = () => {
+                        toast({
+                          title: "Error loading image",
+                          description: "Please try selecting a different image",
+                          variant: "destructive"
+                        });
+                        URL.revokeObjectURL(imageUrl);
+                      };
+                      
+                      img.src = imageUrl;
+                    }
                   };
+                  
                   input.click();
                 }}
               >

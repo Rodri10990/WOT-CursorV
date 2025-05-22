@@ -43,7 +43,7 @@ function getMockResponse(lastMessage: MessageEntry): MessageEntry {
   let responseContent = "";
   
   // Generate different responses based on user input patterns
-  if (userMessage.includes("workout plan") || userMessage.includes("routine")) {
+  if (userMessage.includes("workout plan") || userMessage.includes("routine") || userMessage.includes("exercise program")) {
     responseContent = "Here's a 30-minute strength workout plan perfect for busy individuals:\n\n" +
       "1. Warm-up (5 minutes): Light cardio and dynamic stretches\n" +
       "2. Main Circuit (20 minutes, 3 rounds):\n" +
@@ -79,7 +79,25 @@ function getMockResponse(lastMessage: MessageEntry): MessageEntry {
     responseContent = "Hello! I'm your AI workout assistant. I can help you create personalized workout plans, provide exercise form guidance, and track your progress. What would you like help with today?";
   } 
   else {
-    responseContent = "I'm here to help with your fitness journey. I can create personalized workout plans, provide form guidance for exercises, or help track your progress. What specific fitness topic would you like to explore?";
+    // Give more natural, conversational responses based on the input
+    if (userMessage.includes("muscle") || userMessage.includes("strength")) {
+      responseContent = "Building muscle takes consistency and progressive overload. Are you looking to focus on specific muscle groups or overall strength development?";
+    }
+    else if (userMessage.includes("cardio") || userMessage.includes("running")) {
+      responseContent = "Cardio is great for heart health and endurance! What's your current activity level, and what are your goals?";
+    }
+    else if (userMessage.includes("weight loss") || userMessage.includes("fat")) {
+      responseContent = "Weight management combines exercise with nutrition. A caloric deficit through both diet and exercise usually works best. What's your current approach?";
+    }
+    else if (userMessage.includes("nutrition") || userMessage.includes("diet")) {
+      responseContent = "Nutrition plays a huge role in fitness results! Adequate protein, balanced macros, and proper hydration are key. What aspect of nutrition interests you most?";
+    }
+    else if (userMessage.includes("time") || userMessage.includes("busy")) {
+      responseContent = "I totally understand being busy! Even 15-20 minute workouts can be effective when done consistently. What's your typical schedule like?";
+    }
+    else {
+      responseContent = "That's a great question! I'm here to chat about anything fitness-related. What's on your mind today?";
+    }
   }
   
   return {

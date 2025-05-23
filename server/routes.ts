@@ -66,15 +66,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let updatedMessages = [...conversation.messages, userMessage];
       const assistantMessage = await getAIResponse(updatedMessages);
       
-      // Check if AI created a routine
+      // Check if AI created a routine (temporarily disabled for debugging)
       const routineData = extractRoutineData(assistantMessage.content);
       let savedRoutine = null;
       
-      if (routineData) {
-        // Save the routine to the user's workout library
-        savedRoutine = await storage.saveAIRoutine(userId, routineData);
-        console.log("AI created routine saved:", savedRoutine.name);
-      }
+      // Temporarily disabled to stop automatic routine creation
+      // if (routineData) {
+      //   savedRoutine = await storage.saveAIRoutine(userId, routineData);
+      //   console.log("AI created routine saved:", savedRoutine.name);
+      // }
       
       // Add assistant message to conversation
       updatedMessages = [...updatedMessages, assistantMessage];

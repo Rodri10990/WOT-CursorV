@@ -214,21 +214,21 @@ export default function AITrainer() {
         setConversationId(data.conversationId);
       }
       
-      // Handle special data from response
-      if (data.workout) {
-        setWorkoutPlan(data.workout);
-      }
+      // Handle special data from response (temporarily disabled)
+      // if (data.workout) {
+      //   setWorkoutPlan(data.workout);
+      // }
       if (data.exerciseForm) {
         setExerciseForm(data.exerciseForm);
       }
-      if (data.routine) {
-        // AI created a routine - automatically add it to workout library
-        addRoutine(data.routine);
-        toast({
-          title: "🎉 New Routine Created!",
-          description: `"${data.routine.name}" has been added to your workouts!`,
-        });
-      }
+      // Disabled automatic routine creation
+      // if (data.routine) {
+      //   addRoutine(data.routine);
+      //   toast({
+      //     title: "🎉 New Routine Created!",
+      //     description: `"${data.routine.name}" has been added to your workouts!`,
+      //   });
+      // }
       
       queryClient.invalidateQueries({ queryKey: ["/api/trainer/conversation"] });
     },

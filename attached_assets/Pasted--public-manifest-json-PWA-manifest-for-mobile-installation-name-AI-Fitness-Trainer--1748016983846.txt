@@ -1,0 +1,381 @@
+// public/manifest.json - PWA manifest for mobile installation
+{
+  "name": "AI Fitness Trainer",
+  "short_name": "FitTrainer",
+  "description": "Your personal AI-powered fitness trainer and workout companion",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#4CAF50",
+  "orientation": "portrait-primary",
+  "categories": ["health", "fitness", "lifestyle"],
+  "lang": "en",
+  "dir": "ltr",
+  "icons": [
+    {
+      "src": "/icons/icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-128x128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-384x384.png",
+      "sizes": "384x384",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/desktop-1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "AI Trainer Chat Interface"
+    },
+    {
+      "src": "/screenshots/mobile-1.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile Workout Dashboard"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Start Workout",
+      "short_name": "Workout",
+      "description": "Quick access to start a new workout",
+      "url": "/workouts?action=start",
+      "icons": [
+        {
+          "src": "/icons/shortcut-workout.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Chat with Trainer",
+      "short_name": "AI Chat",
+      "description": "Get instant fitness advice",
+      "url": "/ai-trainer",
+      "icons": [
+        {
+          "src": "/icons/shortcut-chat.png",
+          "sizes": "96x96"
+        }
+      ]
+    }
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false
+}
+
+// client/src/components/pwa-install-prompt.tsx - Smart PWA installation prompt
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, Modal } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface BeforeInstallPromptEvent extends Event {
+  prompt(): Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+export const PWAInstallPrompt: React.FC = () => {
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const [showPrompt, setShowPrompt] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
+
+  useEffect(() => {
+    // Check if app is already installed
+    const checkInstallStatus = () => {
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      const isIOSSafari = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+      const isInStandaloneMode = (navigator as any).standalone;
+      
+      setIsInstalled(isStandalone || (isIOSSafari && isInStandaloneMode));
+    };
+
+    // Listen for the beforeinstallprompt event
+    const handleBeforeInstallPrompt = (e: Event) => {
+      e.preventDefault();
+      setDeferredPrompt(e as BeforeInstallPromptEvent);
+      
+      // Check if user has dismissed the prompt before
+      AsyncStorage.getItem('pwa-install-dismissed').then(dismissed => {
+        if (!dismissed) {
+          setTimeout(() => setShowPrompt(true), 3000); // Show after 3 seconds
+        }
+      });
+    };
+
+    // Listen for successful installation
+    const handleAppInstalled = () => {
+      setIsInstalled(true);
+      setShowPrompt(false);
+      setDeferredPrompt(null);
+    };
+
+    checkInstallStatus();
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('appinstalled', handleAppInstalled);
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+    };
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!deferredPrompt) return;
+
+    deferredPrompt.prompt();
+    const { outcome } = await deferredPrompt.userChoice;
+    
+    if (outcome === 'accepted') {
+      console.log('User accepted the install prompt');
+    } else {
+      console.log('User dismissed the install prompt');
+      await AsyncStorage.setItem('pwa-install-dismissed', 'true');
+    }
+    
+    setDeferredPrompt(null);
+    setShowPrompt(false);
+  };
+
+  const handleDismiss = async () => {
+    setShowPrompt(false);
+    await AsyncStorage.setItem('pwa-install-dismissed', 'true');
+  };
+
+  if (isInstalled || !showPrompt || !deferredPrompt) {
+    return null;
+  }
+
+  return (
+    <Modal
+      visible={showPrompt}
+      transparent
+      animationType="slide"
+    >
+      <View style={{
+        flex: 1,
+        justifyContent: 'flex-end',
+        backgroundColor: 'rgba(0,0,0,0.5)'
+      }}>
+        <View style={{
+          backgroundColor: '#fff',
+          padding: 24,
+          borderTopLeftRadius: 20,
+          borderTopRightRadius: 20,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 10,
+          elevation: 10,
+        }}>
+          <View style={{ alignItems: 'center', marginBottom: 20 }}>
+            <View style={{
+              width: 64,
+              height: 64,
+              borderRadius: 16,
+              backgroundColor: '#4CAF50',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: 16
+            }}>
+              <Ionicons name="fitness" size={32} color="#fff" />
+            </View>
+            
+            <Text style={{
+              fontSize: 20,
+              fontWeight: 'bold',
+              textAlign: 'center',
+              marginBottom: 8
+            }}>
+              Install AI Fitness Trainer
+            </Text>
+            
+            <Text style={{
+              fontSize: 16,
+              color: '#666',
+              textAlign: 'center',
+              lineHeight: 22
+            }}>
+              Add to your home screen for quick access to workouts and your AI trainer
+            </Text>
+          </View>
+
+          <View style={{
+            flexDirection: 'row',
+            gap: 12
+          }}>
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                paddingVertical: 12,
+                paddingHorizontal: 24,
+                borderRadius: 12,
+                borderWidth: 1,
+                borderColor: '#e0e0e0',
+                alignItems: 'center'
+              }}
+              onPress={handleDismiss}
+            >
+              <Text style={{
+                fontSize: 16,
+                color: '#666',
+                fontWeight: '500'
+              }}>
+                Not Now
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={{
+                flex: 1,
+                paddingVertical: 12,
+                paddingHorizontal: 24,
+                borderRadius: 12,
+                backgroundColor: '#4CAF50',
+                alignItems: 'center'
+              }}
+              onPress={handleInstallClick}
+            >
+              <Text style={{
+                fontSize: 16,
+                color: '#fff',
+                fontWeight: '600'
+              }}>
+                Install
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    </Modal>
+  );
+};
+
+// Additional features for Samsung S25 Ultra optimization
+export const useDeviceOptimization = () => {
+  const [deviceInfo, setDeviceInfo] = useState({
+    isLargeScreen: false,
+    hasFoldingScreen: false,
+    orientation: 'portrait'
+  });
+
+  useEffect(() => {
+    const checkDevice = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      
+      setDeviceInfo({
+        isLargeScreen: width >= 768 || height >= 768,
+        hasFoldingScreen: width > 1000 && height > 600, // Detect unfolded state
+        orientation: width > height ? 'landscape' : 'portrait'
+      });
+    };
+
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    window.addEventListener('orientationchange', checkDevice);
+
+    return () => {
+      window.removeEventListener('resize', checkDevice);
+      window.removeEventListener('orientationchange', checkDevice);
+    };
+  }, []);
+
+  return deviceInfo;
+};
+
+// Service Worker Registration (public/sw.js)
+const CACHE_NAME = 'ai-fitness-trainer-v1';
+const urlsToCache = [
+  '/',
+  '/static/js/bundle.js',
+  '/static/css/main.css',
+  '/manifest.json',
+  '/icons/icon-192x192.png',
+  '/icons/icon-512x512.png'
+];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(urlsToCache))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request)
+      .then((response) => {
+        // Return cached version or fetch from network
+        return response || fetch(event.request);
+      })
+  );
+});
+
+// Background sync for offline workout logging
+self.addEventListener('sync', (event) => {
+  if (event.tag === 'background-sync-workouts') {
+    event.waitUntil(syncWorkouts());
+  }
+});
+
+async function syncWorkouts() {
+  // Sync offline workout data when connection is restored
+  const workoutsToSync = await getOfflineWorkouts();
+  
+  for (const workout of workoutsToSync) {
+    try {
+      await fetch('/api/workouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(workout)
+      });
+      await removeOfflineWorkout(workout.id);
+    } catch (error) {
+      console.error('Failed to sync workout:', error);
+    }
+  }
+}

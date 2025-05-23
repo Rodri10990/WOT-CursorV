@@ -1,0 +1,354 @@
+// client/src/components/workout/chat-interface.tsx
+import React, { useRef, useEffect } from 'react';
+import { ScrollView, View, Text, TouchableOpacity } from 'react-native';
+import { MessageInput } from './message-input';
+import { useAITrainer } from '../../hooks/useAITrainer';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+}
+
+export const ChatInterface: React.FC = () => {
+  const scrollViewRef = useRef<ScrollView>(null);
+  const { messages, isLoading, sendMessage } = useAITrainer();
+
+  useEffect(() => {
+    // Auto-scroll to bottom when new messages arrive
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
+  const handleSendMessage = async (message: string) => {
+    await sendMessage(message);
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: '#f8f9fa' }}>
+      {/* Chat Messages */}
+      <ScrollView
+        ref={scrollViewRef}
+        style={{ flex: 1, padding: 16 }}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        {messages.length === 0 && (
+          <View style={{ 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            paddingVertical: 40 
+          }}>
+            <Text style={{ 
+              fontSize: 24, 
+              marginBottom: 8,
+              color: '#4CAF50' 
+            }}>💪</Text>
+            <Text style={{ 
+              fontSize: 18, 
+              fontWeight: 'bold', 
+              marginBottom: 8,
+              color: '#333' 
+            }}>
+              Your AI Trainer
+            </Text>
+            <Text style={{ 
+              textAlign: 'center', 
+              color: '#666',
+              lineHeight: 20 
+            }}>
+              Ask me about workouts, form tips, nutrition, or anything fitness-related!
+            </Text>
+            
+            {/* Quick Action Buttons */}
+            <View style={{ 
+              flexDirection: 'row', 
+              flexWrap: 'wrap', 
+              marginTop: 20,
+              justifyContent: 'center' 
+            }}>
+              {quickPrompts.map((prompt, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={{
+                    backgroundColor: '#e8f5e8',
+                    paddingHorizontal: 12,
+                    paddingVertical: 8,
+                    borderRadius: 20,
+                    margin: 4,
+                  }}
+                  onPress={() => handleSendMessage(prompt)}
+                >
+                  <Text style={{ color: '#4CAF50', fontSize: 14 }}>
+                    {prompt}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        )}
+
+        {messages.map((message) => (
+          <MessageBubble key={message.id} message={message} />
+        ))}
+
+        {isLoading && (
+          <View style={{
+            alignItems: 'flex-start',
+            marginBottom: 16
+          }}>
+            <View style={{
+              backgroundColor: '#fff',
+              padding: 12,
+              borderRadius: 18,
+              borderBottomLeftRadius: 4,
+              maxWidth: '80%',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 1 },
+              shadowOpacity: 0.1,
+              shadowRadius: 2,
+              elevation: 2,
+            }}>
+              <TypingIndicator />
+            </View>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Message Input */}
+      <MessageInput onSendMessage={handleSendMessage} disabled={isLoading} />
+    </View>
+  );
+};
+
+const MessageBubble: React.FC<{ message: Message }> = ({ message }) => {
+  const isUser = message.role === 'user';
+  
+  return (
+    <View style={{
+      alignItems: isUser ? 'flex-end' : 'flex-start',
+      marginBottom: 16
+    }}>
+      <View style={{
+        backgroundColor: isUser ? '#4CAF50' : '#fff',
+        padding: 12,
+        borderRadius: 18,
+        borderBottomRightRadius: isUser ? 4 : 18,
+        borderBottomLeftRadius: isUser ? 18 : 4,
+        maxWidth: '80%',
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.1,
+        shadowRadius: 2,
+        elevation: 2,
+      }}>
+        <Text style={{
+          color: isUser ? '#fff' : '#333',
+          fontSize: 16,
+          lineHeight: 20
+        }}>
+          {message.content}
+        </Text>
+      </View>
+      
+      <Text style={{
+        fontSize: 12,
+        color: '#999',
+        marginTop: 4,
+        paddingHorizontal: 8
+      }}>
+        {message.timestamp.toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })}
+      </Text>
+    </View>
+  );
+};
+
+const TypingIndicator: React.FC = () => {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+      <View style={{ flexDirection: 'row', marginRight: 8 }}>
+        {[0, 1, 2].map((i) => (
+          <View
+            key={i}
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 4,
+              backgroundColor: '#ccc',
+              marginHorizontal: 2,
+              // Add animation here if needed
+            }}
+          />
+        ))}
+      </View>
+      <Text style={{ color: '#666', fontSize: 14 }}>AI Trainer is typing...</Text>
+    </View>
+  );
+};
+
+const quickPrompts = [
+  "Create a workout for me",
+  "Check my form",
+  "Nutrition advice",
+  "Motivate me!",
+  "Rest day activities",
+  "Injury prevention"
+];
+
+// client/src/components/workout/message-input.tsx
+import React, { useState } from 'react';
+import { View, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import * as Speech from 'expo-speech';
+import { Audio } from 'expo-av';
+
+interface MessageInputProps {
+  onSendMessage: (message: string) => void;
+  disabled?: boolean;
+}
+
+export const MessageInput: React.FC<MessageInputProps> = ({ 
+  onSendMessage, 
+  disabled = false 
+}) => {
+  const [message, setMessage] = useState('');
+  const [isRecording, setIsRecording] = useState(false);
+  const [recording, setRecording] = useState<Audio.Recording | null>(null);
+
+  const handleSend = () => {
+    if (message.trim() && !disabled) {
+      onSendMessage(message.trim());
+      setMessage('');
+    }
+  };
+
+  const startRecording = async () => {
+    try {
+      const permission = await Audio.requestPermissionsAsync();
+      if (permission.status !== 'granted') {
+        Alert.alert('Permission needed', 'Please enable microphone access');
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      setRecording(recording);
+      setIsRecording(true);
+    } catch (err) {
+      console.error('Failed to start recording', err);
+      Alert.alert('Error', 'Failed to start recording');
+    }
+  };
+
+  const stopRecording = async () => {
+    if (!recording) return;
+
+    setIsRecording(false);
+    await recording.stopAndUnloadAsync();
+    const uri = recording.getURI();
+    setRecording(null);
+
+    if (uri) {
+      // Here you would typically send the audio to a speech-to-text service
+      // For now, we'll just show a placeholder message
+      Alert.alert('Voice message recorded', 'Speech-to-text processing would happen here');
+    }
+  };
+
+  const handleVoicePress = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
+
+  return (
+    <View style={{
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      backgroundColor: '#fff',
+      borderTopWidth: 1,
+      borderTopColor: '#e0e0e0'
+    }}>
+      {/* Voice Input Button */}
+      <TouchableOpacity
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: isRecording ? '#ff4444' : '#f0f0f0',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 12
+        }}
+        onPress={handleVoicePress}
+        disabled={disabled}
+      >
+        <Ionicons 
+          name={isRecording ? "stop" : "mic"} 
+          size={20} 
+          color={isRecording ? '#fff' : '#666'} 
+        />
+      </TouchableOpacity>
+
+      {/* Text Input */}
+      <View style={{
+        flex: 1,
+        backgroundColor: '#f8f9fa',
+        borderRadius: 20,
+        paddingHorizontal: 16,
+        paddingVertical: 12,
+        marginRight: 12,
+        minHeight: 44,
+        justifyContent: 'center'
+      }}>
+        <TextInput
+          value={message}
+          onChangeText={setMessage}
+          placeholder="Ask your trainer..."
+          multiline
+          style={{
+            fontSize: 16,
+            color: '#333',
+            maxHeight: 100
+          }}
+          editable={!disabled}
+        />
+      </View>
+
+      {/* Send Button */}
+      <TouchableOpacity
+        style={{
+          width: 44,
+          height: 44,
+          borderRadius: 22,
+          backgroundColor: message.trim() && !disabled ? '#4CAF50' : '#e0e0e0',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+        onPress={handleSend}
+        disabled={!message.trim() || disabled}
+      >
+        <Ionicons 
+          name="send" 
+          size={20} 
+          color={message.trim() && !disabled ? '#fff' : '#999'} 
+        />
+      </TouchableOpacity>
+    </View>
+  );
+};

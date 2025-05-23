@@ -318,6 +318,7 @@ export default function AITrainer() {
         messages={messages} 
         isLoading={isLoading} 
         isTyping={isTyping} 
+        onSendMessage={handleSendMessage}
         specialContent={
           <>
 

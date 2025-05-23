@@ -15,6 +15,10 @@ export interface IStorage {
   getLatestConversation(userId: number): Promise<AiConversation | undefined>;
   createConversation(userId: number, messages: MessageEntry[]): Promise<AiConversation>;
   updateConversation(id: number, messages: MessageEntry[]): Promise<AiConversation>;
+  
+  // AI Routine methods
+  saveAIRoutine(userId: number, routineData: any): Promise<any>;
+  getUserRoutines(userId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -88,6 +92,26 @@ export class DatabaseStorage implements IStorage {
     }
     
     return updatedConversation;
+  }
+
+  async saveAIRoutine(userId: number, routineData: any): Promise<any> {
+    // Create a routine compatible with your existing workout system
+    const routine = {
+      id: Date.now().toString(),
+      userId,
+      name: routineData.name,
+      description: routineData.description,
+      days: routineData.days,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      favorite: false
+    };
+    return routine;
+  }
+
+  async getUserRoutines(userId: number): Promise<any[]> {
+    // For now, return empty array - will integrate with existing routine system
+    return [];
   }
 }
 

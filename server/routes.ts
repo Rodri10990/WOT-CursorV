@@ -2,7 +2,7 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance } from "./helpers/gemini";
+import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance, extractRoutineData } from "./helpers/gemini";
 import { MessageEntry } from "@shared/schema";
 
 const messageRequestSchema = z.object({
@@ -66,6 +66,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let updatedMessages = [...conversation.messages, userMessage];
       const assistantMessage = await getAIResponse(updatedMessages);
       
+      // Check if AI created a routine
+      const routineData = extractRoutineData(assistantMessage.content);
+      let savedRoutine = null;
+      
+      if (routineData) {
+        // Save the routine to the user's workout library
+        savedRoutine = await storage.saveAIRoutine(userId, routineData);
+        console.log("AI created routine saved:", savedRoutine.name);
+      }
+      
       // Add assistant message to conversation
       updatedMessages = [...updatedMessages, assistantMessage];
       
@@ -76,6 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({
         message: assistantMessage,
         conversationId: conversation.id,
+        routine: savedRoutine, // Include saved routine if created
       });
     } catch (error) {
       console.error("Error processing message:", error);

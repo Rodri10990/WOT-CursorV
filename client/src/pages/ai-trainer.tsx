@@ -233,6 +233,14 @@ export default function AITrainer() {
       if (data.exerciseForm) {
         setExerciseForm(data.exerciseForm);
       }
+      if (data.routine) {
+        // AI created a routine - automatically add it to workout library
+        addRoutine(data.routine);
+        toast({
+          title: "🎉 New Routine Created!",
+          description: `"${data.routine.name}" has been added to your workouts!`,
+        });
+      }
       
       queryClient.invalidateQueries({ queryKey: ["/api/trainer/conversation"] });
     },

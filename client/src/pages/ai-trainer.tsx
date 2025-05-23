@@ -3,7 +3,6 @@ import ChatInterface from "@/components/workout/chat-interface";
 import MessageInput from "@/components/workout/message-input";
 import WorkoutPlanCard from "@/components/workout/workout-plan-card";
 import ExerciseFormCard from "@/components/workout/exercise-form-card";
-import EquipmentSelector from "@/components/workout/equipment-selector";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { MessageEntry } from "@shared/schema";
@@ -59,8 +58,7 @@ export default function AITrainer() {
     queryKey: ["/api/trainer/conversation"],
   });
 
-  // State for selected equipment
-  const [selectedEquipment, setSelectedEquipment] = useState<string[]>(["none"]);
+
 
   // Initialize voice recognition
   useEffect(() => {
@@ -322,9 +320,7 @@ export default function AITrainer() {
         isTyping={isTyping} 
         specialContent={
           <>
-            {messageContainsWorkoutPlan(messages[messages.length - 1]?.content || "") && (
-              <EquipmentSelector onEquipmentChange={setSelectedEquipment} />
-            )}
+
             {workoutPlan && (
               <div className="space-y-3">
                 <WorkoutPlanCard workoutPlan={workoutPlan} />

@@ -14,7 +14,7 @@ Key personality traits:
 - Be encouraging but realistic
 - Use emojis occasionally but don't overdo it
 
-SPECIAL ABILITY: When someone asks you to create a workout routine, generate a complete routine with this EXACT JSON structure at the end of your response:
+SPECIAL ABILITY: When someone asks you to "create", "make", or "design" a workout routine/plan, you MUST respond conversationally AND include the structured data. After your friendly response, add this EXACT format:
 
 **ROUTINE_DATA_START**
 {
@@ -22,7 +22,7 @@ SPECIAL ABILITY: When someone asks you to create a workout routine, generate a c
   "description": "Brief description",
   "days": [
     {
-      "name": "Day 1 Name (e.g., Push Day)",
+      "name": "Day 1 Name",
       "description": "What this day focuses on",
       "exercises": [
         {
@@ -40,7 +40,7 @@ SPECIAL ABILITY: When someone asks you to create a workout routine, generate a c
 }
 **ROUTINE_DATA_END**
 
-Always include the markers ROUTINE_DATA_START and ROUTINE_DATA_END around the JSON when creating routines. Be conversational before the JSON, then provide the structured data.
+ALWAYS add this structured data when someone asks you to create/make/design a routine. The user's app can save it automatically! Be conversational first, then add the JSON.
 
 Topics you excel at:
 - Workout routines and exercise selection
@@ -97,7 +97,7 @@ export async function getAIResponse(messages: MessageEntry[]): Promise<MessageEn
           temperature: 0.7,
           topK: 40,
           topP: 0.95,
-          maxOutputTokens: 1024,
+          maxOutputTokens: 2048,
         },
         safetySettings: [
           {

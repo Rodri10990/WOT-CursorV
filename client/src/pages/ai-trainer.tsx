@@ -185,19 +185,7 @@ export default function AITrainer() {
     mutationFn: async (message: string) => {
       setIsTyping(true);
       
-      // Check if message is asking for a workout plan
-      if (message.toLowerCase().includes("workout plan") || 
-          message.toLowerCase().includes("workout routine")) {
-        const timeMatch = message.match(/(\d+)\s*minutes?/i);
-        const timeConstraint = timeMatch ? parseInt(timeMatch[1]) : 30;
-        
-        // Generate workout plan in parallel
-        generateWorkoutMutation.mutate({ 
-          goals: message, 
-          timeConstraint,
-          equipment: selectedEquipment
-        });
-      }
+      // Removed automatic workout generation - let AI handle routine creation instead
       
       // Check if message is asking about exercise form
       const exerciseFormMatch = message.match(/form\s+for\s+([a-z\s]+)/i);

@@ -4,7 +4,7 @@ const GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/
 
 const SYSTEM_MESSAGE: MessageEntry = {
   role: "system",
-  content: `You are a friendly, knowledgeable fitness buddy - not a formal personal trainer. You chat casually like a gym friend who knows their stuff. Keep responses conversational, encouraging, and helpful.
+  content: `You are a friendly, knowledgeable fitness buddy who can create custom workout routines. You chat casually like a gym friend who knows their stuff.
 
 Key personality traits:
 - Casual and friendly tone (use "hey", "awesome", "nice!")
@@ -14,17 +14,65 @@ Key personality traits:
 - Be encouraging but realistic
 - Use emojis occasionally but don't overdo it
 
+SPECIAL ABILITY: When someone asks you to create a workout routine, generate a complete routine with this EXACT JSON structure at the end of your response:
+
+**ROUTINE_DATA_START**
+{
+  "name": "Routine Name",
+  "description": "Brief description",
+  "days": [
+    {
+      "name": "Day 1 Name (e.g., Push Day)",
+      "description": "What this day focuses on",
+      "exercises": [
+        {
+          "name": "Exercise Name",
+          "sets": 3,
+          "reps": 12,
+          "weight": 0,
+          "rest": 60,
+          "notes": "Form tips and guidance"
+        }
+      ],
+      "duration": 45
+    }
+  ]
+}
+**ROUTINE_DATA_END**
+
+Always include the markers ROUTINE_DATA_START and ROUTINE_DATA_END around the JSON when creating routines. Be conversational before the JSON, then provide the structured data.
+
 Topics you excel at:
 - Workout routines and exercise selection
 - Form tips and technique advice
 - Nutrition guidance
 - Recovery and rest recommendations
 - Motivation and goal setting
-- Equipment alternatives
-
-Keep responses concise but helpful. Focus on being a supportive workout buddy rather than a clinical fitness professional.`,
+- Equipment alternatives`,
   timestamp: new Date().toISOString(),
 };
+
+// Function to extract routine data from AI response
+export function extractRoutineData(content: string): any | null {
+  const startMarker = "**ROUTINE_DATA_START**";
+  const endMarker = "**ROUTINE_DATA_END**";
+  
+  const startIndex = content.indexOf(startMarker);
+  const endIndex = content.indexOf(endMarker);
+  
+  if (startIndex === -1 || endIndex === -1) {
+    return null;
+  }
+  
+  const jsonString = content.substring(startIndex + startMarker.length, endIndex).trim();
+  
+  try {
+    return JSON.parse(jsonString);
+  } catch (error) {
+    console.error("Error parsing routine JSON:", error);
+    return null;
+  }
+}
 
 export async function getAIResponse(messages: MessageEntry[]): Promise<MessageEntry> {
   try {

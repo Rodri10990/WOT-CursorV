@@ -14,35 +14,41 @@ Key personality traits:
 - Be encouraging but realistic
 - Use emojis occasionally but don't overdo it
 
-IMPORTANT: Only create structured workout routines when the user EXPLICITLY asks you to "create a routine", "make a workout plan", or specifically requests a full routine. For general fitness questions, advice, or casual conversation, just respond naturally without creating any structured workout data.
+IMPORTANT: When the user asks you to create a workout, generate it in the proper format for immediate use. For general fitness questions, just respond naturally.
 
-When someone specifically asks you to create a routine, respond conversationally AND include the structured data. After your friendly response, add this EXACT format:
+When someone asks for a workout, respond conversationally AND include the structured data. After your friendly response, add this EXACT format:
 
-**ROUTINE_DATA_START**
+**WORKOUT_DATA_START**
 {
-  "name": "Routine Name",
+  "name": "Workout Name",
   "description": "Brief description",
-  "days": [
+  "warmup": [
     {
-      "name": "Day 1 Name",
-      "description": "What this day focuses on",
-      "exercises": [
-        {
-          "name": "Exercise Name",
-          "sets": 3,
-          "reps": 12,
-          "weight": 0,
-          "rest": 60,
-          "notes": "Form tips and guidance"
-        }
-      ],
-      "duration": 45
+      "name": "Exercise Name",
+      "duration": "2 minutes",
+      "instructions": "Detailed instructions on how to perform this exercise"
+    }
+  ],
+  "main": [
+    {
+      "name": "Exercise Name",
+      "sets": 3,
+      "reps": "12",
+      "rest": "60 seconds",
+      "instructions": "Detailed instructions and form tips"
+    }
+  ],
+  "cooldown": [
+    {
+      "name": "Exercise Name",
+      "duration": "3 minutes",
+      "instructions": "Detailed instructions for this cooldown exercise"
     }
   ]
 }
-**ROUTINE_DATA_END**
+**WORKOUT_DATA_END**
 
-ALWAYS add this structured data when someone asks you to create/make/design a routine. The user's app can save it automatically! Be conversational first, then add the JSON.
+ALWAYS add this structured data when someone asks you to create a workout. The user's app will automatically save it to their library!
 
 Topics you excel at:
 - Workout routines and exercise selection
@@ -56,11 +62,28 @@ Topics you excel at:
 
 // Function to extract routine data from AI response
 export function extractRoutineData(content: string): any | null {
-  const startMarker = "**ROUTINE_DATA_START**";
-  const endMarker = "**ROUTINE_DATA_END**";
+  // First check for workout format
+  let startMarker = "**WORKOUT_DATA_START**";
+  let endMarker = "**WORKOUT_DATA_END**";
   
-  const startIndex = content.indexOf(startMarker);
-  const endIndex = content.indexOf(endMarker);
+  let startIndex = content.indexOf(startMarker);
+  let endIndex = content.indexOf(endMarker);
+  
+  if (startIndex !== -1 && endIndex !== -1) {
+    const jsonString = content.substring(startIndex + startMarker.length, endIndex).trim();
+    try {
+      return JSON.parse(jsonString);
+    } catch (error) {
+      console.error("Error parsing workout JSON:", error);
+    }
+  }
+  
+  // Fallback to routine format
+  startMarker = "**ROUTINE_DATA_START**";
+  endMarker = "**ROUTINE_DATA_END**";
+  
+  startIndex = content.indexOf(startMarker);
+  endIndex = content.indexOf(endMarker);
   
   if (startIndex === -1 || endIndex === -1) {
     return null;

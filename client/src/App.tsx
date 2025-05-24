@@ -22,7 +22,7 @@ function Router() {
       {/* Add pages below */}
       <Route path="/" component={Dashboard} />
       <Route path="/ai-trainer" component={AITrainer} />
-      <Route path="/workouts" component={Workouts} />
+      <Route path="/workouts" component={Library} />
       <Route path="/progress" component={Progress} />
       <Route path="/nutrition" component={Nutrition} />
       <Route path="/settings" component={Settings} />

@@ -1,9 +1,13 @@
+// server/routes.ts - Fixed workout generation endpoint with Gemini and auto-save
+
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
 import { getAIResponse, generateWorkoutPlan, getExerciseFormGuidance, extractRoutineData } from "./helpers/gemini";
 import { MessageEntry } from "@shared/schema";
+import { db } from "./db";
+import { workouts } from "@shared/schema";
 
 const messageRequestSchema = z.object({
   message: z.string().min(1),
@@ -38,6 +42,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced AI trainer message handler to detect workout generation requests
   app.post("/api/trainer/message", async (req: Request, res: Response) => {
     try {
       const { message, conversationId } = messageRequestSchema.parse(req.body);
@@ -45,13 +50,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // In a real app, we'd use the authenticated user's ID
       const userId = 1;
       
-      // Get or create conversation
+      // Check if user is asking for a workout
+      const isWorkoutRequest = message.toLowerCase().match(
+        /create|generate|make|design|give me|build|suggest.*workout|routine|exercise|training/
+      );
+      
+      if (isWorkoutRequest) {
+        // Extract parameters from the message
+        const duration = extractDuration(message) || 30;
+        const difficulty = extractDifficulty(message) || 'intermediate';
+        const preferences = extractPreferences(message);
+        
+        // Generate and auto-save workout
+        try {
+          const workoutData = await generateWorkoutWithAI({
+            userId,
+            preferences,
+            duration,
+            difficulty
+          });
+          
+          if (workoutData.success) {
+            // Return AI response with workout confirmation
+            return res.json({
+              message: {
+                role: "assistant",
+                content: `I've created a ${duration}-minute ${difficulty} workout for you! "${workoutData.workout.name}" has been automatically saved to your library. 
+
+Here's what I've prepared:
+- Warm-up: ${workoutData.workout.metadata?.exercises?.warmup?.length || 0} exercises
+- Main workout: ${workoutData.workout.metadata?.exercises?.main?.length || 0} exercises  
+- Cool-down: ${workoutData.workout.metadata?.exercises?.cooldown?.length || 0} exercises
+
+Estimated calories burn: ${workoutData.workout.estimatedCalories} cal
+
+Would you like me to walk you through the exercises, or would you prefer to start the workout now?`,
+                timestamp: new Date().toISOString(),
+              },
+              conversationId: conversationId || 1,
+              workoutGenerated: true,
+              workoutId: workoutData.workout.id
+            });
+          }
+        } catch (workoutError) {
+          console.error('Workout generation failed:', workoutError);
+          // Fall through to regular AI conversation
+        }
+      }
+      
+      // Regular AI conversation flow
       let conversation = conversationId 
         ? await storage.getConversation(conversationId) 
         : await storage.getLatestConversation(userId);
       
       if (!conversation) {
-        // Create new conversation if none exists
         conversation = await storage.createConversation(userId, []);
       }
       
@@ -66,28 +118,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let updatedMessages = [...conversation.messages, userMessage];
       const assistantMessage = await getAIResponse(updatedMessages);
       
-      // Check if AI created a routine (temporarily disabled for debugging)
-      const routineData = extractRoutineData(assistantMessage.content);
-      let savedRoutine = null;
-      
-      // Temporarily disabled to stop automatic routine creation
-      // if (routineData) {
-      //   savedRoutine = await storage.saveAIRoutine(userId, routineData);
-      //   console.log("AI created routine saved:", savedRoutine.name);
-      // }
-      
       // Add assistant message to conversation
       updatedMessages = [...updatedMessages, assistantMessage];
       
       // Update conversation in storage
       await storage.updateConversation(conversation.id, updatedMessages);
       
-      // Response with assistant message and any additional data
+      // Response with assistant message
       return res.json({
         message: assistantMessage,
         conversationId: conversation.id,
-        routine: savedRoutine, // Include saved routine if created
       });
+      
     } catch (error) {
       console.error("Error processing message:", error);
       if (error instanceof z.ZodError) {
@@ -131,57 +173,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Enhanced workout generation endpoint with auto-save functionality
-  app.post("/api/generate-workout", async (req: Request, res: Response) => {
+  // Generate workout with Gemini and auto-save to database
+  app.post('/api/generate-workout', async (req: Request, res: Response) => {
     try {
-      const { userId = 1, preferences, duration, difficulty, equipment } = req.body;
+      const { userId = 1, preferences, duration, difficulty } = req.body;
       
-      // Generate workout using Gemini AI
-      const workout = await generateWorkoutWithAI({
-        preferences,
-        duration,
-        difficulty,
-        equipment
-      });
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+
+      // Generate workout using Gemini
+      const prompt = `Generate a ${duration}-minute ${difficulty} fitness workout routine.
+      User preferences: ${preferences || 'general fitness'}
       
-      // Auto-save to library with metadata
-      const smartTags = generateSmartTags({ preferences, difficulty, equipment, workout });
-      const estimatedCalories = calculateEstimatedCalories(duration, difficulty);
-      const muscleGroups = extractMuscleGroups(workout);
+      Return ONLY valid JSON in this exact format, no other text:
+      {
+        "name": "Workout name",
+        "description": "Brief description",
+        "duration": ${duration},
+        "difficulty": "${difficulty}",
+        "warmup": [
+          {
+            "name": "Exercise name",
+            "duration": "seconds",
+            "instructions": "How to perform"
+          }
+        ],
+        "main": [
+          {
+            "name": "Exercise name",
+            "sets": number,
+            "reps": "number or time",
+            "rest": "seconds",
+            "instructions": "How to perform"
+          }
+        ],
+        "cooldown": [
+          {
+            "name": "Exercise name",
+            "duration": "seconds",
+            "instructions": "How to perform"
+          }
+        ]
+      }`;
+
+      const geminiResponse = await generateWorkoutPlan(preferences || "general fitness", parseInt(duration) || 30);
       
-      const workoutDoc = {
+      // Prepare workout for database with enhanced metadata
+      const workoutToSave = {
         userId,
-        name: workout.name || `${difficulty} ${duration}-min Workout`,
-        description: workout.description || `AI-generated ${difficulty} workout`,
-        exercises: workout.exercises || [],
+        name: geminiResponse.name || `${difficulty} ${duration}-min Workout`,
+        description: geminiResponse.description || `AI-generated ${difficulty} workout`,
         duration: parseInt(duration) || 30,
         difficulty: difficulty || 'intermediate',
         category: 'ai-generated',
-        estimatedCalories,
-        targetMuscleGroups: muscleGroups,
-        tags: smartTags,
         createdBy: 'ai-agent',
-        autoGenerated: true
+        autoGenerated: true,
+        exercises: geminiResponse,
+        tags: generateTags(geminiResponse, preferences, difficulty),
+        estimatedCalories: calculateCalories(parseInt(duration) || 30, difficulty),
+        targetMuscleGroups: extractMuscleGroups(geminiResponse),
       };
-      
+
       // Save to database using existing storage
-      const savedWorkout = await storage.createWorkout(workoutDoc);
-      
-      return res.json({
+      const savedWorkout = await storage.createWorkout(workoutToSave);
+
+      if (!savedWorkout) {
+        throw new Error('Failed to save workout to database');
+      }
+
+      console.log('Workout auto-saved:', savedWorkout.id);
+
+      // Return success response
+      res.json({
         success: true,
         workout: {
           id: savedWorkout.id,
-          ...workout
+          ...savedWorkout,
+          exercises: geminiResponse // Include the structured exercise data
         },
         message: 'Workout generated and automatically saved to your library',
         savedToLibrary: true
       });
-      
+
     } catch (error) {
-      console.error("Error generating workout:", error);
-      return res.status(500).json({
+      console.error('Error in generate-workout:', error);
+      res.status(500).json({
         success: false,
-        error: 'Failed to generate workout'
+        error: error.message || 'Failed to generate workout'
       });
     }
   });
@@ -198,85 +277,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET workouts endpoint
+  app.get("/api/workouts", async (req: Request, res: Response) => {
+    try {
+      const userId = 1; // In real app, get from auth
+      const userWorkouts = await storage.getUserWorkouts(userId);
+      return res.json(userWorkouts);
+    } catch (error) {
+      console.error("Error getting workouts:", error);
+      return res.status(500).json({ message: "Failed to get workouts" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
 
-// Helper function to generate workout with AI
-async function generateWorkoutWithAI({ preferences, duration, difficulty, equipment }: any) {
+// Enhanced workout generation with Gemini AI
+async function generateWorkoutWithAI({ userId, preferences, duration, difficulty }: any) {
   try {
-    // Use existing generateWorkoutPlan function from Gemini helper
-    const workout = await generateWorkoutPlan(preferences || "general fitness", parseInt(duration) || 30);
+    const prompt = `Generate a ${duration}-minute ${difficulty} fitness workout routine.
+    User preferences: ${preferences || 'general fitness'}
     
-    return {
-      name: `${difficulty} ${duration}-min Workout`,
-      description: `AI-generated ${difficulty} workout focusing on ${preferences}`,
-      exercises: workout.exercises || [],
+    Return a workout with structured exercises including warmup, main workout, and cooldown.`;
+
+    const geminiResponse = await generateWorkoutPlan(preferences || "general fitness", parseInt(duration) || 30);
+    
+    // Prepare workout for database with enhanced metadata
+    const workoutToSave = {
+      userId,
+      name: geminiResponse.name || `${difficulty} ${duration}-min Workout`,
+      description: geminiResponse.description || `AI-generated ${difficulty} workout`,
       duration: parseInt(duration) || 30,
-      difficulty: difficulty || 'intermediate'
+      difficulty: difficulty || 'intermediate',
+      category: 'ai-generated',
+      createdBy: 'ai-agent',
+      autoGenerated: true,
+      exercises: geminiResponse,
+      tags: generateTags(geminiResponse, preferences, difficulty),
+      estimatedCalories: calculateCalories(parseInt(duration) || 30, difficulty),
+      targetMuscleGroups: extractMuscleGroups(geminiResponse),
+    };
+
+    // Save to database using existing storage
+    const savedWorkout = await storage.createWorkout(workoutToSave);
+
+    return {
+      success: true,
+      workout: {
+        id: savedWorkout.id,
+        ...savedWorkout,
+        metadata: {
+          exercises: geminiResponse
+        }
+      }
     };
   } catch (error) {
     console.error('Error generating workout with AI:', error);
-    throw new Error('Failed to generate workout');
+    throw error;
   }
 }
 
-// Smart tag generation for better organization
-function generateSmartTags({ preferences, difficulty, equipment, workout }: any) {
-  const tags = [];
+// Helper functions
+function generateTags(workoutData: any, preferences: string, difficulty: string): string[] {
+  const tags = new Set<string>();
   
   // Basic tags
-  tags.push(difficulty?.toLowerCase() || 'intermediate');
-  tags.push(`${workout.duration || 30}min`);
+  tags.add(difficulty.toLowerCase());
+  if (workoutData.duration) tags.add(`${workoutData.duration}min`);
   
-  // Equipment tags
-  if (equipment && Array.isArray(equipment)) {
-    equipment.forEach((item: string) => {
-      if (item !== 'none') tags.push(item.toLowerCase());
-    });
-  }
-  
-  // Preference-based tags
+  // Extract from preferences
   if (preferences) {
-    if (preferences.includes('cardio')) tags.push('cardio');
-    if (preferences.includes('strength')) tags.push('strength');
-    if (preferences.includes('flexibility')) tags.push('flexibility');
+    const prefLower = preferences.toLowerCase();
+    if (prefLower.includes('cardio')) tags.add('cardio');
+    if (prefLower.includes('strength')) tags.add('strength');
+    if (prefLower.includes('flexibility')) tags.add('flexibility');
+    if (prefLower.includes('hiit')) tags.add('hiit');
   }
   
-  // Auto-detect workout type from exercises
-  const exerciseNames = JSON.stringify(workout).toLowerCase();
-  if (exerciseNames.includes('squat') || exerciseNames.includes('lunge')) tags.push('legs');
-  if (exerciseNames.includes('push-up') || exerciseNames.includes('bench')) tags.push('chest');
-  if (exerciseNames.includes('plank') || exerciseNames.includes('crunch')) tags.push('core');
+  // Extract from exercises
+  const exerciseText = JSON.stringify(workoutData).toLowerCase();
   
-  return Array.from(new Set(tags)); // Remove duplicates
+  // Auto-detect workout types
+  if (exerciseText.includes('squat') || exerciseText.includes('lunge')) tags.add('legs');
+  if (exerciseText.includes('push') || exerciseText.includes('press')) tags.add('upper-body');
+  if (exerciseText.includes('plank') || exerciseText.includes('core')) tags.add('core');
+  if (exerciseText.includes('run') || exerciseText.includes('jump')) tags.add('cardio');
+  
+  return Array.from(tags);
 }
 
-// Calculate estimated calories (basic formula)
-function calculateEstimatedCalories(duration: string | number, difficulty: string) {
-  const baseCaloriesPerMinute: { [key: string]: number } = {
+function calculateCalories(duration: number, difficulty: string): number {
+  const caloriesPerMinute = {
     'beginner': 5,
     'intermediate': 8,
     'advanced': 11
   };
   
-  const durationNum = typeof duration === 'string' ? parseInt(duration) : duration;
-  return Math.round(durationNum * (baseCaloriesPerMinute[difficulty?.toLowerCase()] || 8));
+  const rate = caloriesPerMinute[difficulty.toLowerCase()] || 8;
+  return Math.round(duration * rate);
 }
 
-// Extract muscle groups from workout
-function extractMuscleGroups(workout: any) {
-  const muscleGroups = new Set();
+function extractMuscleGroups(workoutData: any): string[] {
+  const muscleGroups = new Set<string>();
+  const exerciseText = JSON.stringify(workoutData).toLowerCase();
   
-  const exerciseText = JSON.stringify(workout).toLowerCase();
-  
-  const muscleKeywords: { [key: string]: string[] } = {
-    'chest': ['push-up', 'bench press', 'fly', 'chest'],
+  const muscleKeywords = {
+    'chest': ['push-up', 'bench', 'fly', 'chest'],
     'back': ['pull-up', 'row', 'lat', 'back'],
-    'legs': ['squat', 'lunge', 'leg', 'calf', 'hamstring'],
-    'shoulders': ['shoulder', 'overhead press', 'lateral raise'],
+    'legs': ['squat', 'lunge', 'leg', 'calf', 'quad', 'hamstring'],
+    'shoulders': ['shoulder', 'overhead', 'lateral', 'delt'],
     'arms': ['bicep', 'tricep', 'curl', 'arm'],
-    'core': ['plank', 'crunch', 'abs', 'core']
+    'core': ['plank', 'crunch', 'abs', 'core', 'oblique'],
+    'glutes': ['glute', 'hip', 'bridge']
   };
   
   for (const [muscle, keywords] of Object.entries(muscleKeywords)) {
@@ -286,4 +399,26 @@ function extractMuscleGroups(workout: any) {
   }
   
   return Array.from(muscleGroups);
+}
+
+// Helper functions for parameter extraction
+function extractDuration(message: string): number | null {
+  const match = message.match(/(\d+)\s*(?:minute|min)/i);
+  return match ? parseInt(match[1]) : null;
+}
+
+function extractDifficulty(message: string): string {
+  if (/beginner|easy|simple/i.test(message)) return 'beginner';
+  if (/advanced|hard|challenging/i.test(message)) return 'advanced';
+  return 'intermediate';
+}
+
+function extractPreferences(message: string): string {
+  const preferences = [];
+  if (/cardio/i.test(message)) preferences.push('cardio');
+  if (/strength/i.test(message)) preferences.push('strength');
+  if (/flexibility|stretch/i.test(message)) preferences.push('flexibility');
+  if (/hiit/i.test(message)) preferences.push('hiit');
+  if (/yoga/i.test(message)) preferences.push('yoga');
+  return preferences.join(', ') || 'general fitness';
 }

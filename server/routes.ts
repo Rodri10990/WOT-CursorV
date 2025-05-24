@@ -289,6 +289,24 @@ Would you like me to walk you through the exercises, or would you prefer to star
     }
   });
 
+  // DELETE workout endpoint
+  app.delete("/api/workouts/:id", async (req: Request, res: Response) => {
+    try {
+      const workoutId = parseInt(req.params.id);
+      const userId = 1; // In real app, get from auth
+      
+      if (!workoutId) {
+        return res.status(400).json({ message: "Invalid workout ID" });
+      }
+
+      await storage.deleteWorkout(workoutId, userId);
+      return res.json({ success: true, message: "Workout deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+      return res.status(500).json({ message: "Failed to delete workout" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

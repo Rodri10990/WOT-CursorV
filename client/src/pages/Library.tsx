@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Flame, Dumbbell, Bot, User } from 'lucide-react';
+import { Clock, Flame, Dumbbell, Bot, User, Trash2 } from 'lucide-react';
 import { useLocation } from 'wouter';
 
 interface Workout {
@@ -78,6 +78,31 @@ export default function Library() {
   const startWorkout = (workout: Workout) => {
     // Navigate to workout player with the workout data
     setLocation(`/workout/${workout.id}`);
+  };
+
+  const deleteWorkout = async (workoutId: number, workoutName: string) => {
+    if (!confirm(`Are you sure you want to delete "${workoutName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/workouts/${workoutId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete workout');
+      }
+
+      // Remove workout from local state
+      setWorkouts(workouts.filter(w => w.id !== workoutId));
+      
+      // Show success message
+      console.log(`Workout "${workoutName}" deleted successfully`);
+    } catch (err) {
+      console.error('Error deleting workout:', err);
+      alert('Failed to delete workout. Please try again.');
+    }
   };
 
   const getDifficultyColor = (difficulty: string) => {
@@ -215,6 +240,14 @@ export default function Library() {
                 onClick={() => setLocation(`/workout/${workout.id}/details`)}
               >
                 View Details
+              </Button>
+              <Button 
+                variant="outline"
+                size="icon"
+                onClick={() => deleteWorkout(workout.id, workout.name)}
+                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="w-4 h-4" />
               </Button>
             </div>
           </CardContent>

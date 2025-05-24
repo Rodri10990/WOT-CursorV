@@ -12,6 +12,7 @@ import Nutrition from "@/pages/nutrition";
 import Settings from "@/pages/settings";
 import RoutineDetail from "@/pages/routine-detail";
 import DayDetail from "@/pages/day-detail";
+import TestWorkoutGenerator from "@/pages/test-workout-generator";
 import TabBar from "@/components/layout/tab-bar";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 
@@ -27,6 +28,7 @@ function Router() {
       <Route path="/settings" component={Settings} />
       <Route path="/routine/:id" component={RoutineDetail} />
       <Route path="/routine/:routineId/day/:dayId" component={DayDetail} />
+      <Route path="/test-workout" component={TestWorkoutGenerator} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

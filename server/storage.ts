@@ -19,6 +19,10 @@ export interface IStorage {
   // AI Routine methods
   saveAIRoutine(userId: number, routineData: any): Promise<any>;
   getUserRoutines(userId: number): Promise<any[]>;
+  
+  // Workout methods
+  createWorkout(workoutData: any): Promise<any>;
+  getUserWorkouts(userId: number): Promise<any[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -112,6 +116,28 @@ export class DatabaseStorage implements IStorage {
   async getUserRoutines(userId: number): Promise<any[]> {
     // For now, return empty array - will integrate with existing routine system
     return [];
+  }
+
+  async createWorkout(workoutData: any): Promise<any> {
+    const [workout] = await db
+      .insert(workouts)
+      .values({
+        userId: workoutData.userId,
+        name: workoutData.name,
+        description: workoutData.description,
+        duration: workoutData.duration,
+        difficulty: workoutData.difficulty
+      })
+      .returning();
+    return workout;
+  }
+
+  async getUserWorkouts(userId: number): Promise<any[]> {
+    const userWorkouts = await db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.userId, userId));
+    return userWorkouts;
   }
 }
 

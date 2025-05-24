@@ -1,0 +1,64 @@
+// client/src/main.tsx or App.tsx - Ensure proper routing setup
+
+import React from 'react';
+import { Route, Switch, Router } from 'wouter';
+import { Home } from './pages/Home';
+import { Library } from './pages/Library';
+import { WorkoutPlayer } from './pages/WorkoutPlayer';
+import { Trainer } from './pages/Trainer';
+import { Profile } from './pages/Profile';
+import { TabBar } from './components/TabBar';
+
+export function App() {
+  const isAuthenticated = !!localStorage.getItem('token'); // Simple auth check
+
+  if (!isAuthenticated) {
+    return <LoginPage />; // Your login component
+  }
+
+  return (
+    <Router>
+      <div className="min-h-screen bg-gray-50">
+        <div className="max-w-md mx-auto bg-white min-h-screen relative pb-16">
+          <Switch>
+            <Route path="/" component={Home} />
+            <Route path="/library" component={Library} />
+            <Route path="/workout/:id" component={WorkoutPlayer} />
+            <Route path="/trainer" component={Trainer} />
+            <Route path="/profile" component={Profile} />
+            <Route>
+              {/* 404 fallback */}
+              <div className="flex flex-col items-center justify-center h-screen">
+                <h1 className="text-2xl font-bold mb-4">404 - Page Not Found</h1>
+                <p className="text-gray-600 mb-4">The page you're looking for doesn't exist.</p>
+                <Button onClick={() => window.location.href = '/'}>
+                  Go Home
+                </Button>
+              </div>
+            </Route>
+          </Switch>
+          
+          {/* Tab bar at bottom */}
+          <TabBar />
+        </div>
+      </div>
+    </Router>
+  );
+}
+
+// Alternative: If you're using a different routing setup, here's a simpler version
+// that should work with your existing navigation
+
+// In your Library component, update the navigation to use the correct path:
+// client/src/pages/Library.tsx - Update only the startWorkout function
+
+const startWorkout = (workout: Workout) => {
+  // Option 1: If routes aren't working, use direct navigation
+  window.location.href = `/workout/${workout.id}`;
+  
+  // Option 2: Use Wouter's navigate (if imported correctly)
+  // navigate(`/workout/${workout.id}`);
+  
+  // Option 3: Pass workout data via state (if you prefer)
+  // navigate(`/workout-player`, { state: { workout } });
+};

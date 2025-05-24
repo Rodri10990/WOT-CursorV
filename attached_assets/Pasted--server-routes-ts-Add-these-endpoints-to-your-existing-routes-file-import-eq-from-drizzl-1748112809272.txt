@@ -1,0 +1,128 @@
+// server/routes.ts - Add these endpoints to your existing routes file
+
+import { eq } from 'drizzle-orm';
+
+// Get single workout by ID
+app.get('/api/workouts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id; // Assuming you have auth middleware
+    
+    // Fetch workout from database
+    const [workout] = await db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.id, parseInt(id)))
+      .limit(1);
+    
+    if (!workout) {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+    
+    // Verify user owns this workout (optional security check)
+    if (workout.userId !== userId) {
+      return res.status(403).json({ error: 'Unauthorized' });
+    }
+    
+    res.json(workout);
+  } catch (error) {
+    console.error('Error fetching workout:', error);
+    res.status(500).json({ error: 'Failed to fetch workout' });
+  }
+});
+
+// Mark workout as completed
+app.post('/api/workouts/:id/complete', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    
+    // Fetch current workout
+    const [workout] = await db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.id, parseInt(id)))
+      .limit(1);
+    
+    if (!workout || workout.userId !== userId) {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+    
+    // Update analytics
+    const updatedAnalytics = {
+      ...workout.analytics,
+      timesCompleted: (workout.analytics.timesCompleted || 0) + 1,
+      lastCompleted: new Date().toISOString()
+    };
+    
+    // Update workout
+    await db
+      .update(workouts)
+      .set({
+        analytics: updatedAnalytics,
+        updatedAt: new Date()
+      })
+      .where(eq(workouts.id, parseInt(id)));
+    
+    res.json({ 
+      success: true, 
+      message: 'Workout completed!',
+      timesCompleted: updatedAnalytics.timesCompleted 
+    });
+  } catch (error) {
+    console.error('Error completing workout:', error);
+    res.status(500).json({ error: 'Failed to update workout' });
+  }
+});
+
+// Get all workouts for a user (update this if it doesn't exist)
+app.get('/api/workouts', async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    
+    if (!userId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    
+    // Fetch all workouts for the user
+    const userWorkouts = await db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.userId, userId))
+      .orderBy(desc(workouts.createdAt));
+    
+    res.json(userWorkouts);
+  } catch (error) {
+    console.error('Error fetching workouts:', error);
+    res.status(500).json({ error: 'Failed to fetch workouts' });
+  }
+});
+
+// Delete a workout (optional)
+app.delete('/api/workouts/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user?.id;
+    
+    // Verify ownership
+    const [workout] = await db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.id, parseInt(id)))
+      .limit(1);
+    
+    if (!workout || workout.userId !== userId) {
+      return res.status(404).json({ error: 'Workout not found' });
+    }
+    
+    // Delete workout
+    await db
+      .delete(workouts)
+      .where(eq(workouts.id, parseInt(id)));
+    
+    res.json({ success: true, message: 'Workout deleted' });
+  } catch (error) {
+    console.error('Error deleting workout:', error);
+    res.status(500).json({ error: 'Failed to delete workout' });
+  }
+});

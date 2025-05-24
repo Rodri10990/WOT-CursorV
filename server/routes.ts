@@ -277,55 +277,119 @@ Would you like me to walk you through the exercises, or would you prefer to star
     }
   });
 
-  // GET workouts endpoint
-  app.get("/api/workouts", async (req: Request, res: Response) => {
+  // Get all workouts for a user
+  app.get('/api/workouts', async (req: Request, res: Response) => {
     try {
-      const userId = 1; // In real app, get from auth
-      const userWorkouts = await storage.getUserWorkouts(userId);
-      return res.json(userWorkouts);
+      const userId = 1; // In real app, get from auth middleware
+      
+      // Fetch all workouts for the user
+      const userWorkouts = await db
+        .select()
+        .from(workouts)
+        .where(eq(workouts.userId, userId.toString()));
+      
+      res.json(userWorkouts);
     } catch (error) {
-      console.error("Error getting workouts:", error);
-      return res.status(500).json({ message: "Failed to get workouts" });
+      console.error('Error fetching workouts:', error);
+      res.status(500).json({ error: 'Failed to fetch workouts' });
     }
   });
 
-  // GET single workout endpoint
-  app.get("/api/workouts/:id", async (req: Request, res: Response) => {
+  // Get single workout by ID
+  app.get('/api/workouts/:id', async (req: Request, res: Response) => {
     try {
-      const workoutId = parseInt(req.params.id);
-      const userId = 1; // In real app, get from auth
+      const { id } = req.params;
+      const userId = 1; // In real app, get from auth middleware
       
-      if (!workoutId) {
-        return res.status(400).json({ message: "Invalid workout ID" });
-      }
-
-      const workout = await storage.getWorkout(workoutId, userId);
+      // Fetch workout from database
+      const [workout] = await db
+        .select()
+        .from(workouts)
+        .where(eq(workouts.id, parseInt(id)))
+        .limit(1);
+      
       if (!workout) {
-        return res.status(404).json({ message: "Workout not found" });
+        return res.status(404).json({ error: 'Workout not found' });
       }
       
-      return res.json(workout);
+      res.json(workout);
     } catch (error) {
-      console.error("Error getting workout:", error);
-      return res.status(500).json({ message: "Failed to get workout" });
+      console.error('Error fetching workout:', error);
+      res.status(500).json({ error: 'Failed to fetch workout' });
     }
   });
 
-  // DELETE workout endpoint
-  app.delete("/api/workouts/:id", async (req: Request, res: Response) => {
+  // Mark workout as completed
+  app.post('/api/workouts/:id/complete', async (req: Request, res: Response) => {
     try {
-      const workoutId = parseInt(req.params.id);
-      const userId = 1; // In real app, get from auth
+      const { id } = req.params;
+      const userId = 1; // In real app, get from auth middleware
       
-      if (!workoutId) {
-        return res.status(400).json({ message: "Invalid workout ID" });
+      // Fetch current workout
+      const [workout] = await db
+        .select()
+        .from(workouts)
+        .where(eq(workouts.id, parseInt(id)))
+        .limit(1);
+      
+      if (!workout) {
+        return res.status(404).json({ error: 'Workout not found' });
       }
-
-      await storage.deleteWorkout(workoutId, userId);
-      return res.json({ success: true, message: "Workout deleted successfully" });
+      
+      // Update analytics
+      const currentAnalytics = workout.analytics || { timesCompleted: 0, lastCompleted: null };
+      const updatedAnalytics = {
+        ...currentAnalytics,
+        timesCompleted: (currentAnalytics.timesCompleted || 0) + 1,
+        lastCompleted: new Date().toISOString()
+      };
+      
+      // Update workout
+      await db
+        .update(workouts)
+        .set({
+          analytics: updatedAnalytics,
+          updatedAt: new Date()
+        })
+        .where(eq(workouts.id, parseInt(id)));
+      
+      res.json({ 
+        success: true, 
+        message: 'Workout completed!',
+        timesCompleted: updatedAnalytics.timesCompleted 
+      });
     } catch (error) {
-      console.error("Error deleting workout:", error);
-      return res.status(500).json({ message: "Failed to delete workout" });
+      console.error('Error completing workout:', error);
+      res.status(500).json({ error: 'Failed to update workout' });
+    }
+  });
+
+  // Delete a workout
+  app.delete('/api/workouts/:id', async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = 1; // In real app, get from auth middleware
+      
+      // Verify workout exists
+      const [workout] = await db
+        .select()
+        .from(workouts)
+        .where(eq(workouts.id, parseInt(id)))
+        .limit(1);
+      
+      if (!workout) {
+        return res.status(404).json({ error: 'Workout not found' });
+      }
+      
+      // Delete workout
+      await db
+        .delete(workouts)
+        .where(eq(workouts.id, parseInt(id)));
+      
+      res.json({ success: true, message: 'Workout deleted' });
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+      res.status(500).json({ error: 'Failed to delete workout' });
     }
   });
 

@@ -44,6 +44,16 @@ export default function Library() {
     fetchWorkouts();
   }, []);
 
+  // Add a useEffect to refetch when the page becomes visible
+  useEffect(() => {
+    const handleFocus = () => {
+      fetchWorkouts();
+    };
+    
+    window.addEventListener('focus', handleFocus);
+    return () => window.removeEventListener('focus', handleFocus);
+  }, []);
+
   const fetchWorkouts = async () => {
     try {
       setLoading(true);

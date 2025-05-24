@@ -289,6 +289,28 @@ Would you like me to walk you through the exercises, or would you prefer to star
     }
   });
 
+  // GET single workout endpoint
+  app.get("/api/workouts/:id", async (req: Request, res: Response) => {
+    try {
+      const workoutId = parseInt(req.params.id);
+      const userId = 1; // In real app, get from auth
+      
+      if (!workoutId) {
+        return res.status(400).json({ message: "Invalid workout ID" });
+      }
+
+      const workout = await storage.getWorkout(workoutId, userId);
+      if (!workout) {
+        return res.status(404).json({ message: "Workout not found" });
+      }
+      
+      return res.json(workout);
+    } catch (error) {
+      console.error("Error getting workout:", error);
+      return res.status(500).json({ message: "Failed to get workout" });
+    }
+  });
+
   // DELETE workout endpoint
   app.delete("/api/workouts/:id", async (req: Request, res: Response) => {
     try {

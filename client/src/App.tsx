@@ -13,6 +13,7 @@ import Settings from "@/pages/settings";
 import RoutineDetail from "@/pages/routine-detail";
 import DayDetail from "@/pages/day-detail";
 import Library from "@/pages/Library";
+import WorkoutPlayer from "@/pages/WorkoutPlayer";
 import TabBar from "@/components/layout/tab-bar";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 
@@ -29,6 +30,7 @@ function Router() {
       <Route path="/routine/:id" component={RoutineDetail} />
       <Route path="/routine/:routineId/day/:dayId" component={DayDetail} />
       <Route path="/library" component={Library} />
+      <Route path="/workout/:id" component={WorkoutPlayer} />
       {/* Fallback to 404 */}
       <Route component={NotFound} />
     </Switch>

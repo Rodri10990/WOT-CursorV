@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser, AiConversation, InsertAiConversation, MessageEntry, aiConversations } from "@shared/schema";
+import { users, workouts, type User, type InsertUser, AiConversation, InsertAiConversation, MessageEntry, aiConversations } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc } from "drizzle-orm";
 

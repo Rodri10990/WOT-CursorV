@@ -66,7 +66,8 @@ export default function MessageInput({ onSendMessage }: MessageInputProps) {
         <div className="flex-1 relative">
           <Textarea
             ref={textareaRef}
-            className="w-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-black dark:text-white rounded-2xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-primary resize-none text-sm"
+            className="w-full border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-gray-900 dark:text-gray-100 rounded-2xl px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary dark:focus:ring-primary resize-none text-sm"
+            style={{ color: '#1f2937' }}
             placeholder="Ask me anything about fitness..."
             rows={1}
             value={message}

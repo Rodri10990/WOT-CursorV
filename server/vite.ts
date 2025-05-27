@@ -5,6 +5,8 @@ import { createServer as createViteServer, createLogger } from "vite";
 import { type Server } from "http";
 import viteConfig from "../vite.config";
 import { nanoid } from "nanoid";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
 
 const viteLogger = createLogger();
 
@@ -18,6 +20,20 @@ export function log(message: string, source = "express") {
 
   console.log(`${formattedTime} [${source}] ${message}`);
 }
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    host: '0.0.0.0', // Allow external connections
+    port: 5173,
+    proxy: {
+      '/api': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      }
+    }
+  }
+});
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
@@ -36,7 +52,10 @@ export async function setupVite(app: Express, server: Server) {
         process.exit(1);
       },
     },
-    server: serverOptions,
+    server: {
+      ...serverOptions,
+      allowedHosts: ['localhost', '127.0.0.1']
+    },
     appType: "custom",
   });
 

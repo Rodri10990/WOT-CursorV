@@ -1,419 +1,328 @@
-import { useEffect, useState, useRef } from "react";
-import ChatInterface from "@/components/workout/chat-interface";
-import MessageInput from "@/components/workout/message-input";
-import WorkoutPlanCard from "@/components/workout/workout-plan-card";
-import ExerciseFormCard from "@/components/workout/exercise-form-card";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
-import { MessageEntry } from "@shared/schema";
-import { queryClient } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Button } from "@/components/ui/button";
-import { useRoutineStore } from "@/lib/workoutRoutineStore";
-import { useUserStore } from "@/lib/userStore";
+// client/src/pages/ProactiveTrainer.tsx - Enhanced AI trainer with proactive suggestions
 
-interface ConversationResponse {
-  id: number;
-  messages: MessageEntry[];
-}
+import React, { useState, useEffect, useRef } from 'react';
+import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { 
+  Bot, 
+  Send, 
+  Sparkles, 
+  TrendingUp,
+  Target,
+  Calendar,
+  Zap,
+  Brain
+} from 'lucide-react';
 
-interface Exercise {
-  name: string;
-  sets?: number;
-  reps?: number;
-  duration?: number;
-  notes?: string;
-}
+export function ProactiveTrainer() {
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [userPatterns, setUserPatterns] = useState(null);
+  const [suggestions, setSuggestions] = useState([]);
+  const messagesEndRef = useRef(null);
+  
+  const userId = localStorage.getItem('userId');
 
-interface WorkoutPlan {
-  name: string;
-  description: string;
-  duration: number;
-  exercises: Exercise[];
-}
-
-interface ExerciseFormGuide {
-  exerciseName: string;
-  steps: string[];
-  keyPoints: string[];
-  commonMistakes: string[];
-  beginnerModifications: string[];
-}
-
-export default function AITrainer() {
-  const [messages, setMessages] = useState<MessageEntry[]>([]);
-  const [conversationId, setConversationId] = useState<number | null>(null);
-  const [isTyping, setIsTyping] = useState(false);
-  const [workoutPlan, setWorkoutPlan] = useState<WorkoutPlan | null>(null);
-  const [exerciseForm, setExerciseForm] = useState<ExerciseFormGuide | null>(null);
-  const [isListening, setIsListening] = useState(false);
-  const [voiceSupported, setVoiceSupported] = useState(false);
-  const recognitionRef = useRef<any>(null);
-  const { toast } = useToast();
-  const { addRoutine } = useRoutineStore();
-  const { name, weight, bodyFat } = useUserStore();
-
-  // Fetch existing conversation or start a new one
-  const { data: conversationData, isLoading } = useQuery<ConversationResponse>({
-    queryKey: ["/api/trainer/conversation"],
-  });
-
-
-
-  // Initialize voice recognition
   useEffect(() => {
-    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      setVoiceSupported(true);
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = 'en-US';
-      
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setIsListening(false);
-        handleSendMessage(transcript);
-      };
-      
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-        toast({
-          title: "Voice recognition error",
-          description: "Please try again or type your message",
-          variant: "destructive"
-        });
-      };
-      
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
-    }
+    initializeProactiveAgent();
   }, []);
 
-  const startVoiceInput = () => {
-    if (recognitionRef.current && voiceSupported) {
-      setIsListening(true);
-      recognitionRef.current.start();
-      toast({
-        title: "🎤 Listening...",
-        description: "Speak your question to your AI trainer"
-      });
-    }
-  };
-
-  const saveWorkoutPlan = () => {
-    if (workoutPlan) {
-      const newRoutine = {
-        name: workoutPlan.name,
-        description: workoutPlan.description,
-        days: [{
-          id: 'day1',
-          name: 'AI Generated Workout',
-          description: workoutPlan.description,
-          exercises: workoutPlan.exercises.map(ex => ({
-            name: ex.name,
-            sets: ex.sets || 3,
-            reps: ex.reps || 10,
-            duration: ex.duration,
-            notes: ex.notes || ''
-          })),
-          duration: workoutPlan.duration
-        }],
-        favorite: false
-      };
-      
-      addRoutine(newRoutine);
-      toast({
-        title: "Workout saved! 💪",
-        description: "Added to your routine library"
-      });
-    }
-  };
-  
-  // Generate workout plan mutation
-  const generateWorkoutMutation = useMutation({
-    mutationFn: async (query: { goals: string, timeConstraint: number, equipment: string[] }) => {
-      const response = await apiRequest(
-        "POST",
-        "/api/trainer/generate-workout",
-        query
-      );
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data && data.name) {
-        setWorkoutPlan(data);
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Failed to generate workout plan",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Get exercise form guidance mutation
-  const getExerciseFormMutation = useMutation({
-    mutationFn: async (exerciseName: string) => {
-      const response = await apiRequest(
-        "GET",
-        `/api/trainer/exercise-form/${encodeURIComponent(exerciseName)}`
-      );
-      return response.json();
-    },
-    onSuccess: (data) => {
-      if (data && data.exerciseName) {
-        setExerciseForm(data);
-      }
-    },
-    onError: () => {
-      toast({
-        title: "Failed to get exercise form guidance",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    },
-  });
-
-  // Send message mutation
-  const sendMessageMutation = useMutation({
-    mutationFn: async (message: string) => {
-      setIsTyping(true);
-      
-      // Removed automatic workout generation - let AI handle routine creation instead
-      
-      // Check if message is asking about exercise form
-      const exerciseFormMatch = message.match(/form\s+for\s+([a-z\s]+)/i);
-      if (exerciseFormMatch && exerciseFormMatch[1]) {
-        // Get exercise form guidance in parallel
-        getExerciseFormMutation.mutate(exerciseFormMatch[1].trim());
-      }
-      
-      // Continue with normal message processing
-      const response = await apiRequest(
-        "POST",
-        "/api/trainer/message",
-        {
-          message,
-          conversationId,
-        }
-      );
-      return response.json();
-    },
-    onSuccess: (data) => {
-      setIsTyping(false);
-      if (data.message) {
-        setMessages((prev) => [...prev, data.message]);
-      }
-      if (data.conversationId && !conversationId) {
-        setConversationId(data.conversationId);
-      }
-      
-      // Handle special data from response (temporarily disabled)
-      // if (data.workout) {
-      //   setWorkoutPlan(data.workout);
-      // }
-      if (data.exerciseForm) {
-        setExerciseForm(data.exerciseForm);
-      }
-      // Disabled automatic routine creation
-      // if (data.routine) {
-      //   addRoutine(data.routine);
-      //   toast({
-      //     title: "🎉 New Routine Created!",
-      //     description: `"${data.routine.name}" has been added to your workouts!`,
-      //   });
-      // }
-      
-      queryClient.invalidateQueries({ queryKey: ["/api/trainer/conversation"] });
-    },
-    onError: () => {
-      setIsTyping(false);
-      toast({
-        title: "Failed to send message",
-        description: "Please try again",
-        variant: "destructive",
-      });
-    },
-  });
-
   useEffect(() => {
-    if (conversationData) {
-      setConversationId(conversationData.id);
-      setMessages(conversationData.messages || []);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
+  const initializeProactiveAgent = async () => {
+    // Load user patterns
+    try {
+      const patternsRes = await fetch(`/api/patterns/${userId}`);
+      const patternsData = await patternsRes.json();
+      setUserPatterns(patternsData.patterns);
+
+      // Generate proactive greeting based on patterns
+      const greeting = generateProactiveGreeting(patternsData.patterns);
+      setMessages([{ role: 'assistant', content: greeting }]);
+
+      // Generate quick action suggestions
+      const quickActions = generateQuickActions(patternsData.patterns);
+      setSuggestions(quickActions);
+    } catch (error) {
+      console.error('Error initializing:', error);
+      setMessages([{ 
+        role: 'assistant', 
+        content: 'Hey there! I\'m your AI fitness trainer. How can I help you today?' 
+      }]);
     }
-  }, [conversationData]);
-  
-  // Handle errors
-  useEffect(() => {
-    const handleError = () => {
-      toast({
-        title: "Connection error",
-        description: "Please check your internet connection",
-        variant: "destructive",
+  };
+
+  const generateProactiveGreeting = (patterns) => {
+    const hour = new Date().getHours();
+    let timeGreeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+    
+    let greeting = `${timeGreeting}! 🌟\n\n`;
+    
+    // Personalized insights
+    if (patterns.workoutFrequency === 'daily') {
+      greeting += `Amazing consistency! You've been crushing it with daily workouts. `;
+    } else if (patterns.workoutFrequency === 'occasional') {
+      greeting += `I noticed it's been a while since your last workout. Ready to get back on track? `;
+    }
+    
+    // Muscle group recommendation
+    const leastWorked = findLeastWorkedMuscle(patterns.muscleGroupFocus);
+    if (leastWorked) {
+      greeting += `\n\nI've noticed you haven't worked on ${leastWorked} recently. `;
+    }
+    
+    // Time-based suggestion
+    if (hour >= 6 && hour <= 9) {
+      greeting += `Perfect time for an energizing morning workout! `;
+    } else if (hour >= 17 && hour <= 20) {
+      greeting += `Great time to release the day's stress with some exercise! `;
+    }
+    
+    greeting += '\n\nWhat would you like to focus on today?';
+    
+    return greeting;
+  };
+
+  const generateQuickActions = (patterns) => {
+    const actions = [];
+    
+    // Based on last workout
+    const muscleGroups = Object.keys(patterns.muscleGroupFocus || {});
+    const leastWorked = findLeastWorkedMuscle(patterns.muscleGroupFocus);
+    
+    if (leastWorked) {
+      actions.push({
+        icon: <Target className="w-4 h-4" />,
+        label: `${leastWorked} workout`,
+        action: `Create a ${patterns.preferredDifficulty} ${leastWorked} workout for ${patterns.averageDuration} minutes`
       });
-    };
-    window.addEventListener('offline', handleError);
-    return () => window.removeEventListener('offline', handleError);
-  }, [toast]);
-
-  // Function to detect content type in user messages
-  const messageContainsWorkoutPlan = (msg: string): boolean => {
-    return msg.toLowerCase().includes("workout plan") || 
-           msg.toLowerCase().includes("workout routine") ||
-           msg.toLowerCase().includes("exercise plan");
-  };
-  
-  const messageContainsExerciseForm = (msg: string): boolean => {
-    return msg.toLowerCase().includes("form for") || 
-           (msg.toLowerCase().includes("how to") && 
-            msg.toLowerCase().includes("perform")) ||
-           (msg.toLowerCase().includes("exercise") && 
-            msg.toLowerCase().includes("technique"));
-  };
-
-  const handleSendMessage = (message: string) => {
-    if (!message.trim()) return;
-    
-    // Clear special content if message isn't about them
-    if (!messageContainsWorkoutPlan(message)) {
-      setWorkoutPlan(null);
     }
     
-    if (!messageContainsExerciseForm(message)) {
-      setExerciseForm(null);
+    // Based on time of day
+    const hour = new Date().getHours();
+    if (hour < 12) {
+      actions.push({
+        icon: <Zap className="w-4 h-4" />,
+        label: 'Morning HIIT',
+        action: 'Generate a 20-minute morning HIIT workout to boost my energy'
+      });
+    } else if (hour > 20) {
+      actions.push({
+        icon: <Sparkles className="w-4 h-4" />,
+        label: 'Evening stretch',
+        action: 'Create a relaxing evening stretch routine'
+      });
     }
     
-    // Add user message immediately to UI
-    const userMessage: MessageEntry = {
-      role: "user",
-      content: message,
-      timestamp: new Date().toISOString(),
-    };
+    // Progressive suggestion
+    if (patterns.preferredDifficulty === 'beginner') {
+      actions.push({
+        icon: <TrendingUp className="w-4 h-4" />,
+        label: 'Level up',
+        action: 'Create an intermediate workout to challenge myself'
+      });
+    }
     
-    setMessages((prev) => [...prev, userMessage]);
-    sendMessageMutation.mutate(message);
+    // Weekly plan
+    actions.push({
+      icon: <Calendar className="w-4 h-4" />,
+      label: 'Weekly plan',
+      action: 'Design a balanced weekly workout plan for me'
+    });
+    
+    return actions;
+  };
+
+  const findLeastWorkedMuscle = (muscleGroupFocus) => {
+    if (!muscleGroupFocus) return null;
+    
+    const allMuscles = ['legs', 'chest', 'back', 'shoulders', 'arms', 'core'];
+    const worked = Object.keys(muscleGroupFocus);
+    const notWorked = allMuscles.filter(m => !worked.includes(m));
+    
+    if (notWorked.length > 0) return notWorked[0];
+    
+    // Find least frequently worked
+    return Object.entries(muscleGroupFocus)
+      .sort(([,a], [,b]) => a - b)[0]?.[0];
+  };
+
+  const sendMessage = async (messageText = input) => {
+    if (!messageText.trim() || loading) return;
+
+    const userMessage = messageText.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setLoading(true);
+
+    try {
+      // Check if this is a workout request
+      const isWorkoutRequest = userMessage.toLowerCase().match(
+        /create|generate|make|design|build|plan.*workout|routine|exercise|training/
+      );
+
+      if (isWorkoutRequest) {
+        // Add thinking indicator
+        setMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: '🤔 Analyzing your request and personalizing based on your history...',
+          thinking: true 
+        }]);
+      }
+
+      const response = await fetch('/api/trainer/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ 
+          message: userMessage,
+          userId,
+          patterns: userPatterns // Include patterns for context
+        })
+      });
+
+      const data = await response.json();
+      
+      // Remove thinking message
+      setMessages(prev => prev.filter(m => !m.thinking));
+      
+      // Add actual response
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: data.response 
+      }]);
+
+      // If workout was generated, show success animation
+      if (data.workoutGenerated) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            role: 'system',
+            content: '✅ Workout saved to your library!',
+            type: 'success'
+          }]);
+        }, 500);
+      }
+
+      // Update suggestions based on conversation
+      if (data.newSuggestions) {
+        setSuggestions(data.newSuggestions);
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setMessages(prev => prev.filter(m => !m.thinking));
+      setMessages(prev => [...prev, { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error. Please try again.' 
+      }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="flex flex-col h-full">
-      {/* Trainer Info Section */}
-      <div className="bg-white dark:bg-neutral-900 p-3 border-b border-neutral-200 dark:border-neutral-800">
-        <div className="flex items-center">
-          <div className="mr-3 h-10 w-10 bg-accent rounded-full flex items-center justify-center">
-            <span className="material-icons text-white text-lg">smart_toy</span>
+      {/* Chat messages */}
+      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        {messages.map((message, index) => (
+          <div
+            key={index}
+            className={`flex ${
+              message.role === 'user' ? 'justify-end' : 'justify-start'
+            }`}
+          >
+            <div className={`max-w-[80%] ${message.role === 'system' ? 'w-full' : ''}`}>
+              {message.role === 'assistant' && (
+                <div className="flex items-center gap-2 mb-1">
+                  <Bot className="w-5 h-5 text-primary" />
+                  <span className="text-sm font-medium">AI Trainer</span>
+                  <Brain className="w-4 h-4 text-primary/60" />
+                </div>
+              )}
+              
+              <Card className={`p-3 ${
+                message.role === 'user' 
+                  ? 'bg-primary text-white' 
+                  : message.role === 'system'
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-gray-50'
+              }`}>
+                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+              </Card>
+            </div>
           </div>
-          <div>
-            <h2 className="font-semibold text-base">AI Personal Trainer</h2>
-            <p className="text-neutral-400 text-xs">Your fitness assistant</p>
+        ))}
+        
+        {loading && (
+          <div className="flex justify-start">
+            <Card className="p-3 bg-gray-50">
+              <div className="flex items-center gap-2">
+                <div className="animate-pulse">🧠</div>
+                <span className="text-sm text-gray-600">AI is thinking...</span>
+              </div>
+            </Card>
+          </div>
+        )}
+        
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Quick action suggestions */}
+      {suggestions.length > 0 && (
+        <div className="p-4 border-t bg-gray-50">
+          <p className="text-xs text-gray-600 mb-2">Suggested actions:</p>
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((suggestion, index) => (
+              <Button
+                key={index}
+                size="sm"
+                variant="outline"
+                onClick={() => sendMessage(suggestion.action)}
+                className="text-xs"
+              >
+                {suggestion.icon}
+                <span className="ml-1">{suggestion.label}</span>
+              </Button>
+            ))}
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Chat Interface with Special Cards */}
-      <ChatInterface 
-        messages={messages} 
-        isLoading={isLoading} 
-        isTyping={isTyping} 
-        onSendMessage={handleSendMessage}
-        specialContent={
-          <>
-
-            {workoutPlan && (
-              <div className="space-y-3">
-                <WorkoutPlanCard workoutPlan={workoutPlan} />
-                <div className="flex gap-2">
-                  <Button 
-                    onClick={saveWorkoutPlan}
-                    className="flex-1"
-                    size="sm"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                      <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    Save to Routines
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    size="sm"
-                    onClick={() => toast({
-                      title: "Workout shared! 🔗",
-                      description: "Link copied to clipboard"
-                    })}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                      <polyline points="16 6 12 2 8 6"></polyline>
-                      <line x1="12" y1="2" x2="12" y2="15"></line>
-                    </svg>
-                    Share
-                  </Button>
-                </div>
-              </div>
-            )}
-            {exerciseForm && <ExerciseFormCard formGuide={exerciseForm} />}
-          </>
-        }
-      />
-
-      {/* Enhanced Message Input with Voice */}
-      <div className="relative">
-        <MessageInput onSendMessage={handleSendMessage} />
-        {voiceSupported && (
-          <Button
-            variant={isListening ? "default" : "outline"}
+      {/* Input area */}
+      <div className="p-4 border-t bg-white">
+        <div className="flex gap-2">
+          <Input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
+            placeholder="Ask me anything about fitness..."
+            disabled={loading}
+            className="flex-1"
+          />
+          <Button 
+            onClick={() => sendMessage()} 
+            disabled={loading || !input.trim()}
             size="icon"
-            className={`absolute right-16 bottom-3 h-8 w-8 ${
-              isListening ? 'bg-red-500 hover:bg-red-600 animate-pulse' : ''
-            }`}
-            onClick={startVoiceInput}
-            disabled={isListening}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-              <line x1="12" y1="19" x2="12" y2="23"></line>
-              <line x1="8" y1="23" x2="16" y2="23"></line>
-            </svg>
+            <Send className="w-4 h-4" />
           </Button>
+        </div>
+        
+        {/* Context indicator */}
+        {userPatterns && (
+          <div className="mt-2 flex items-center gap-2 text-xs text-gray-500">
+            <Brain className="w-3 h-3" />
+            <span>
+              AI personalized based on your {userPatterns.workoutFrequency} workout habits
+            </span>
+          </div>
         )}
-      </div>
-
-      {/* Personalized Quick Actions */}
-      <div className="grid grid-cols-2 gap-2 p-4 bg-neutral-50 dark:bg-neutral-900/50">
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => handleSendMessage(`Create a workout plan for my ${weight}lb body weight focusing on building muscle`)}
-        >
-          💪 Custom Workout Plan
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => handleSendMessage("What exercises can help me improve my body composition?")}
-        >
-          📊 Body Composition Tips
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => handleSendMessage("Show me proper form for compound exercises")}
-        >
-          🎯 Exercise Form Guide
-        </Button>
-        <Button 
-          variant="outline" 
-          size="sm"
-          onClick={() => handleSendMessage("Track my progress and suggest improvements")}
-        >
-          📈 Progress Analysis
-        </Button>
       </div>
     </div>
   );

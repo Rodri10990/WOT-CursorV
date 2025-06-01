@@ -9,6 +9,7 @@ import { MessageEntry } from "@shared/schema";
 import { db } from "./db";
 import { workouts } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { workoutIntelligence } from "./services/workout-intelligence";
 
 const messageRequestSchema = z.object({
   message: z.string().min(1),
@@ -17,6 +18,264 @@ const messageRequestSchema = z.object({
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // AI Trainer routes
+  // Get personalized recommendations
+app.get('/api/recommendations/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const recommendations = await workoutIntelligence.getSmartRecommendations(userId);
+    
+    res.json({
+      success: true,
+      recommendations,
+      generatedAt: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error getting recommendations:', error);
+    res.status(500).json({ error: 'Failed to get recommendations' });
+  }
+});
+
+// Get user workout patterns
+app.get('/api/patterns/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const patterns = await workoutIntelligence.analyzeUserPatterns(userId);
+    
+    res.json({
+      success: true,
+      patterns,
+      insights: generateInsights(patterns)
+    });
+  } catch (error) {
+    console.error('Error analyzing patterns:', error);
+    res.status(500).json({ error: 'Failed to analyze patterns' });
+  }
+});
+
+// Auto-organize library
+app.post('/api/organize-library/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    // Archive old workouts
+    const archivedCount = await workoutIntelligence.autoArchiveWorkouts(userId);
+    
+    // Reorganize remaining workouts by category
+    const userWorkouts = await db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.userId, userId));
+    
+    // Categorize each workout
+    const categorized = await Promise.all(
+      userWorkouts.map(async (workout) => {
+        const categories = await workoutIntelligence.categorizeWorkout(workout);
+        
+        // Update workout with categories
+        await db
+          .update(workouts)
+          .set({
+            metadata: {
+              ...workout.metadata,
+              categories
+            },
+            updatedAt: new Date()
+          })
+          .where(eq(workouts.id, workout.id));
+        
+        return { workoutId: workout.id, categories };
+      })
+    );
+    
+    res.json({
+      success: true,
+      organized: categorized.length,
+      archived: archivedCount,
+      message: `Library organized! ${archivedCount} old workouts archived.`
+    });
+  } catch (error) {
+    console.error('Error organizing library:', error);
+    res.status(500).json({ error: 'Failed to organize library' });
+  }
+});
+
+// Smart search with AI understanding
+app.post('/api/smart-search', async (req, res) => {
+  try {
+    const { userId, query } = req.body;
+    
+    // Use AI to understand search intent
+    const searchPrompt = `Understand this workout search query: "${query}"
+    
+    Extract:
+    - Muscle groups mentioned
+    - Duration preferences
+    - Difficulty level
+    - Equipment needed
+    - Workout type (strength, cardio, etc.)
+    
+    Return as JSON with these fields.`;
+    
+    const aiUnderstanding = await geminiHelper.generateContent(searchPrompt);
+    const searchCriteria = JSON.parse(aiUnderstanding);
+    
+    // Search workouts based on AI understanding
+    let workoutQuery = db
+      .select()
+      .from(workouts)
+      .where(eq(workouts.userId, userId));
+    
+    // Apply filters based on AI understanding
+    const results = await workoutQuery;
+    
+    const filtered = results.filter(workout => {
+      let score = 0;
+      
+      // Match muscle groups
+      if (searchCriteria.muscleGroups?.length > 0) {
+        const matches = workout.targetMuscleGroups?.filter(mg => 
+          searchCriteria.muscleGroups.includes(mg)
+        );
+        score += matches?.length || 0;
+      }
+      
+      // Match duration
+      if (searchCriteria.duration) {
+        const targetDuration = parseInt(searchCriteria.duration);
+        if (Math.abs(workout.duration - targetDuration) < 10) {
+          score += 2;
+        }
+      }
+      
+      // Match difficulty
+      if (searchCriteria.difficulty && workout.difficulty === searchCriteria.difficulty) {
+        score += 2;
+      }
+      
+      return score > 0;
+    });
+    
+    res.json({
+      success: true,
+      query,
+      understanding: searchCriteria,
+      results: filtered,
+      count: filtered.length
+    });
+  } catch (error) {
+    console.error('Error in smart search:', error);
+    res.status(500).json({ error: 'Search failed' });
+  }
+});
+
+// Helper function to generate insights
+function generateInsights(patterns: any) {
+  const insights = [];
+  
+  // Workout frequency insight
+  switch (patterns.workoutFrequency) {
+    case 'daily':
+      insights.push({
+        type: 'positive',
+        message: 'Great job! You\'re working out almost daily.',
+        icon: '🌟'
+      });
+      break;
+    case 'regular':
+      insights.push({
+        type: 'positive',
+        message: 'Nice consistency! You maintain a regular workout schedule.',
+        icon: '💪'
+      });
+      break;
+    case 'occasional':
+      insights.push({
+        type: 'improvement',
+        message: 'Try to workout more consistently for better results.',
+        icon: '📈'
+      });
+      break;
+  }
+  
+  // Muscle balance insight
+  const muscleGroups = Object.keys(patterns.muscleGroupFocus);
+  if (muscleGroups.length < 4) {
+    insights.push({
+      type: 'tip',
+      message: 'Consider adding more variety to target different muscle groups.',
+      icon: '🎯'
+    });
+  }
+  
+  // Duration insight
+  if (patterns.averageDuration < 20) {
+    insights.push({
+      type: 'tip',
+      message: 'Your workouts are quite short. Consider extending them for better results.',
+      icon: '⏱️'
+    });
+  } else if (patterns.averageDuration > 60) {
+    insights.push({
+      type: 'tip',
+      message: 'Long workouts! Make sure you\'re getting enough rest between sessions.',
+      icon: '😴'
+    });
+  }
+  
+  return insights;
+}
+
+// Update the generate workout endpoint to include categorization
+app.post('/api/generate-workout', async (req, res) => {
+  try {
+    const { userId, preferences, duration, difficulty } = req.body;
+    
+    // Get user patterns for personalization
+    const patterns = await workoutIntelligence.analyzeUserPatterns(userId);
+    
+    // Generate workout with AI (existing code)
+    const prompt = `Generate a ${duration}-minute ${difficulty} fitness workout.
+    User preferences: ${preferences}
+    User patterns: Prefers ${patterns.preferredDifficulty} workouts, 
+    usually works out ${patterns.workoutFrequency}, 
+    favorite types: ${patterns.favoriteTypes.join(', ')}
+    
+    Create a personalized workout considering their patterns.
+    
+    Return ONLY valid JSON...`;
+    
+    // ... rest of existing generation code ...
+    
+    // After saving workout, categorize it
+    const categories = await workoutIntelligence.categorizeWorkout(workoutToSave);
+    
+    // Update workout with categories
+    await db
+      .update(workouts)
+      .set({
+        metadata: {
+          ...savedWorkout.metadata,
+          categories
+        }
+      })
+      .where(eq(workouts.id, savedWorkout.id));
+    
+    res.json({
+      success: true,
+      workout: {
+        ...savedWorkout,
+        categories
+      },
+      personalized: true,
+      basedOnPatterns: patterns
+    });
+  } catch (error) {
+    console.error('Error generating workout:', error);
+    res.status(500).json({ error: 'Failed to generate workout' });
+  }
+});
   app.get("/api/trainer/conversation", async (req: Request, res: Response) => {
     try {
       // In a real app, we would use the user's ID from authentication
